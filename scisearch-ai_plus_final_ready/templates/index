@@ -1,1 +1,11 @@
-<html><body><h1>SciSearch AI</h1></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SciSearch AI</title>
+</head>
+<body>
+    <h1>SciSearch AI</h1>
+    <p>Interface pronta. Frontend será implementado aqui.</p>
+</body>
+</html>
