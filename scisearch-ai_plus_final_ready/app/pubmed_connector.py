@@ -1,57 +1,35 @@
 import requests
-from bs4 import BeautifulSoup
 import os
 
-API_KEY = os.getenv("PUBMED_API_KEY")
 
-def fetch_pubmed_data(query, study_types=[], year_range=None):
+def search_pubmed(query: str, api_key: str = None, max_results: int = 20) -> dict:
+    """
+    Realiza uma busca na base PubMed usando a API do NCBI E-Utilities.
+    
+    Parâmetros:
+        - query (str): termo de busca em formato livre ou estruturado (ex: 'diabetes AND exercise').
+        - api_key (str, opcional): chave de API do NCBI para melhorar o limite de requisições.
+        - max_results (int): número máximo de resultados a serem retornados.
+
+    Retorno:
+        - dict: resposta da API em formato JSON contendo os IDs dos artigos encontrados.
+    """
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
     params = {
         "db": "pubmed",
         "term": query,
         "retmode": "json",
-        "retmax": 50,
-        "api_key": API_KEY
+        "retmax": max_results
     }
 
-    if year_range:
-        params["mindate"] = year_range[0]
-        params["maxdate"] = year_range[1]
-        params["datetype"] = "pdat"
+    # Usa a chave do ambiente se não for passada diretamente
+    if not api_key:
+        api_key = os.environ.get("PUBMED_API_KEY")
+    if api_key:
+        params["api_key"] = api_key
 
     response = requests.get(base_url, params=params)
-    id_list = response.json().get("esearchresult", {}).get("idlist", [])
-
-    if not id_list:
-        return []
-
-    summaries_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
-    summaries_params = {
-        "db": "pubmed",
-        "id": ",".join(id_list),
-        "retmode": "json",
-        "api_key": API_KEY
-    }
-
-    summaries_response = requests.get(summaries_url, params=summaries_params)
-    summaries = summaries_response.json().get("result", {})
-
-    articles = []
-    for uid in id_list:
-        item = summaries.get(uid, {})
-        title = item.get("title", "")
-        source = item.get("source", "")
-        authors = ", ".join([au["name"] for au in item.get("authors", []) if "name" in au])
-        pubdate = item.get("pubdate", "")
-        link = f"https://pubmed.ncbi.nlm.nih.gov/{uid}/"
-
-        articles.append({
-            "title": title,
-            "source": source,
-            "authors": authors,
-            "pubdate": pubdate,
-            "link": link,
-            "database": "PubMed"
-        })
-
-    return articles
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Erro na requisição ao PubMed: {response.status_code} - {response.text}")
