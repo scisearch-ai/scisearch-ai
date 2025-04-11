@@ -1,0 +1,71 @@
+# Arquivo: templates/results.html
+# Essa é a nova página de resultados com seleção por título e resumo
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados - SciSearch AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            font-size: 28px;
+        }
+        .result {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .result input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        #next-step-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Resultados da Busca</h2>
+    <form id="selection-form">
+        <div id="results-container">
+            <!-- Resultados inseridos dinamicamente -->
+        </div>
+        <button type="submit" id="next-step-btn">Avançar para Seleção por Resumo</button>
+    </form>
+
+    <script>
+        const results = JSON.parse(localStorage.getItem('search_results') || '[]');
+        const container = document.getElementById('results-container');
+
+        results.forEach((r, index) => {
+            const div = document.createElement('div');
+            div.className = 'result';
+            div.innerHTML = `
+                <label>
+                    <input type="checkbox" name="selected" value="${index}">
+                    <strong>${r.title}</strong><br>
+                    <em>${r.year}</em><br>
+                    <a href="${r.url}" target="_blank">Acessar</a>
+                </label>
+            `;
+            container.appendChild(div);
+        });
+
+        document.getElementById('selection-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const selected = Array.from(document.querySelectorAll('input[name="selected"]:checked'))
+                .map(cb => results[cb.value]);
+            localStorage.setItem('selected_titles', JSON.stringify(selected));
+            window.location.href = '/abstract-review';
+        });
+    </script>
+</body>
+</html>
