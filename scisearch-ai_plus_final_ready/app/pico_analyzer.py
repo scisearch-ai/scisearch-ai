@@ -1,48 +1,66 @@
+# FASE 1 – Atualização de reconhecimento automático da estrutura PICOT com campo editável e inteligência adaptativa
+
+# Arquivo: pico_analyzer.py
+
 import spacy
 from langdetect import detect
 from deep_translator import GoogleTranslator
+import json
+import os
 
-# Load SciSpaCy model
 nlp = spacy.load("en_core_sci_sm")
 
+# Caminho para salvar preferências do usuário (auto aprendizado leve)
+USER_PATTERN_MEMORY = "app/picot_learning_memory.json"
+
+# Inicializa ou carrega memória adaptativa
+if os.path.exists(USER_PATTERN_MEMORY):
+    with open(USER_PATTERN_MEMORY, "r") as f:
+        user_memory = json.load(f)
+else:
+    user_memory = {}
+
+def save_memory():
+    with open(USER_PATTERN_MEMORY, "w") as f:
+        json.dump(user_memory, f, indent=2)
+
 def analyze_question(question):
-    try:
-        # Detect language
-        detected_lang = detect(question)
+    detected_lang = detect(question)
+    if detected_lang != "en":
+        question_en = GoogleTranslator(source='auto', target='en').translate(question)
+    else:
         question_en = question
 
-        if detected_lang != "en":
-            # Efficient batch translation
-            question_en = GoogleTranslator(source='auto', target='en').translate_batch([question])[0]
+    doc = nlp(question_en.lower())
+    tokens = [token.text for token in doc]
 
-        doc = nlp(question_en.lower())
-        tokens = [token.text for token in doc]
+    # Heurísticas baseadas em contexto aprendido do usuário (auto aprendizado leve)
+    def find_term(term_type, fallback_terms):
+        # Tenta encontrar termo com base na memória de padrões do usuário
+        memory_terms = user_memory.get(term_type, [])
+        for token in tokens:
+            if token in memory_terms:
+                return token
 
-        population_terms = ["patients", "children", "adults", "elderly", "individuals", "subjects"]
-        intervention_terms = ["treatment", "therapy", "exercise", "intervention", "drug", "medication"]
-        comparison_terms = ["placebo", "control", "standard", "no treatment"]
-        outcome_terms = ["pain", "function", "mobility", "recovery", "strength", "fatigue"]
-        time_terms = ["weeks", "months", "years", "days", "sessions"]
+        # Fallback para termos padrão
+        for token in tokens:
+            for keyword in fallback_terms:
+                if keyword in token:
+                    # Aprendizado simples: salva esse termo na memória do usuário
+                    if token not in user_memory.get(term_type, []):
+                        user_memory.setdefault(term_type, []).append(token)
+                        save_memory()
+                    return keyword
+        return ""
 
-        def find_term(term_list):
-            for token in tokens:
-                for keyword in term_list:
-                    if keyword in token:
-                        return keyword
-            return "unspecified"
+    pico_result = {
+        "language": detected_lang,
+        "question_en": question_en,
+        "population": find_term("population", ["patients", "children", "adults", "elderly", "individuals"]),
+        "intervention": find_term("intervention", ["exercise", "treatment", "therapy", "intervention", "drug"]),
+        "comparison": find_term("comparison", ["placebo", "control", "standard", "no treatment"]),
+        "outcome": find_term("outcome", ["pain", "function", "mobility", "recovery", "strength"]),
+        "time": find_term("time", ["weeks", "months", "days", "years"]),
+    }
 
-        pico_result = {
-            "language": detected_lang,
-            "question_en": question_en,
-            "population": find_term(population_terms),
-            "intervention": find_term(intervention_terms),
-            "comparison": find_term(comparison_terms),
-            "outcome": find_term(outcome_terms),
-            "time": find_term(time_terms),
-            "full_query": question_en  # necessário para as buscas
-        }
-
-        return pico_result
-
-    except Exception as e:
-        return {"error": f"Translation or analysis failed: {str(e)}"}
+    return pico_result
