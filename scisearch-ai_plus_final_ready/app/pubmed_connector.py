@@ -33,7 +33,6 @@ def search_pubmed(query: str, api_key: str = None, max_results: int = 20) -> dic
         return response.json()
     else:
         raise Exception(f"Erro na requisição ao PubMed: {response.status_code} - {response.text}")
-Add search_pubmed function to pubmed_connector
-Commit directly to the main branch
-Commit new file
 
+# Comentário opcional para referência futura:
+# Add search_pubmed function to pubmed_connector
