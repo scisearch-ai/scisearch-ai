@@ -3,9 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <title>SciSearch AI</title>
+    <script>
+        async function submitQuestion() {
+            const question = document.getElementById("question").value;
+            const timeFilter = document.getElementById("time_filter").value;
+            const studyTypes = Array.from(document.querySelectorAll('input[name="study_type"]:checked')).map(el => el.value);
+
+            const response = await fetch("/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question, time_filter: timeFilter, study_types: studyTypes })
+            });
+
+            const data = await response.json();
+
+            const outputDiv = document.getElementById("output");
+            outputDiv.innerHTML = "";
+
+            if (data.error) {
+                outputDiv.innerHTML = `<p><strong>Error:</strong> ${data.error}</p>`;
+                return;
+            }
+
+            outputDiv.innerHTML += `<h3>Structured PICOT</h3>`;
+            outputDiv.innerHTML += `<pre>${JSON.stringify(data.pico, null, 2)}</pre>`;
+
+            outputDiv.innerHTML += `<h3>PubMed Results</h3>`;
+            outputDiv.innerHTML += `<pre>${JSON.stringify(data.pubmed_results, null, 2)}</pre>`;
+
+            outputDiv.innerHTML += `<h3>Scopus Results</h3>`;
+            outputDiv.innerHTML += `<pre>${JSON.stringify(data.scopus_results, null, 2)}</pre>`;
+        }
+    </script>
 </head>
-<body>
+<body style="font-family: Arial, sans-serif; padding: 2em;">
     <h1>SciSearch AI</h1>
-    <p>The interface is running correctly. Frontend implementation goes here.</p>
+    <p>Enter your clinical question below:</p>
+
+    <textarea id="question" rows="4" cols="80" placeholder="Enter your clinical research question here..."></textarea><br><br>
+
+    <label for="time_filter">Time filter:</label>
+    <select id="time_filter">
+        <option value="">All years</option>
+        <option value="5">Last 5 years</option>
+        <option value="10">Last 10 years</option>
+    </select>
+
+    <h4>Select study types:</h4>
+    <label><input type="checkbox" name="study_type" value="clinical trial"> Clinical Trial</label><br>
+    <label><input type="checkbox" name="study_type" value="observational study"> Observational Study</label><br>
+    <label><input type="checkbox" name="study_type" value="review"> Review</label><br>
+    <label><input type="checkbox" name="study_type" value="case report"> Case Report</label><br>
+
+    <br>
+    <button onclick="submitQuestion()">Search</button>
+
+    <hr>
+    <div id="output"></div>
 </body>
 </html>
