@@ -8,16 +8,15 @@ nlp = spacy.load("en_core_sci_sm")
 def analyze_question(question):
     # Detect language
     detected_lang = detect(question)
-    if detected_lang != "en":
-        question_en = GoogleTranslator(source='auto', target='en').translate(question)
-    else:
-        question_en = question
+    question_en = (
+        GoogleTranslator(source="auto", target="en").translate(question)
+        if detected_lang != "en" else question
+    )
 
     doc = nlp(question_en.lower())
-
-    # Heuristics for detecting PICOT components
     tokens = [token.text for token in doc]
 
+    # Heuristic keyword sets
     population_terms = ["patients", "children", "adults", "elderly", "individuals", "subjects"]
     intervention_terms = ["treatment", "therapy", "exercise", "intervention", "drug", "medication"]
     comparison_terms = ["placebo", "control", "standard", "no treatment"]
@@ -38,7 +37,8 @@ def analyze_question(question):
         "intervention": find_term(intervention_terms),
         "comparison": find_term(comparison_terms),
         "outcome": find_term(outcome_terms),
-        "time": find_term(time_terms)
+        "time": find_term(time_terms),
+        "full_query": question_en
     }
 
     return pico_result
