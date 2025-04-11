@@ -1,0 +1,10 @@
+Flask==2.3.2
+gunicorn==20.1.0
+requests==2.31.0
+spacy==3.6.1
+langdetect==1.0.9
+deep-translator==1.11.4
+scispacy==0.5.3
+nmslib==2.0.6
+beautifulsoup4==4.13.3
+en_core_sci_sm @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.3/en_core_sci_sm-0.5.3.tar.gz
