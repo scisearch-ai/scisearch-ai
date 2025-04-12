@@ -1,6 +1,3 @@
-# Arquivo: templates/results.html
-# Essa é a nova página de resultados com seleção por título e resumo
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,62 +7,95 @@
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background-color: #f9f9f9;
+            background-color: #f0f4f8;
         }
         h2 {
             font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .base-header {
+            background-color: #dfe9f5;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 20px;
+            border-left: 5px solid #4a90e2;
         }
         .result {
             background: white;
             border-radius: 8px;
             padding: 15px;
             margin: 10px 0;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.08);
         }
         .result input[type="checkbox"] {
             margin-right: 10px;
         }
         #next-step-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
+            margin-top: 30px;
+            padding: 12px 25px;
             font-size: 16px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #next-step-btn:hover {
+            background-color: #3c7ecb;
         }
     </style>
 </head>
 <body>
     <h2>Resultados da Busca</h2>
     <form id="selection-form">
-        <div id="results-container">
-            <!-- Resultados inseridos dinamicamente -->
-        </div>
+        <div id="results-container"></div>
         <button type="submit" id="next-step-btn">Avançar para Seleção por Resumo</button>
     </form>
 
     <script>
-        const results = JSON.parse(localStorage.getItem('search_results') || '[]');
+        const results = JSON.parse(localStorage.getItem('search_results') || '{}');
         const container = document.getElementById('results-container');
 
-        results.forEach((r, index) => {
-            const div = document.createElement('div');
-            div.className = 'result';
-            div.innerHTML = `
-                <label>
-                    <input type="checkbox" name="selected" value="${index}">
-                    <strong>${r.title}</strong><br>
-                    <em>${r.year}</em><br>
-                    <a href="${r.url}" target="_blank">Acessar</a>
-                </label>
-            `;
-            container.appendChild(div);
+        let selectedArticles = [];
+
+        Object.entries(results.results || {}).forEach(([base, baseResults]) => {
+            const header = document.createElement('div');
+            header.className = 'base-header';
+            header.textContent = base;
+            container.appendChild(header);
+
+            if (baseResults.error) {
+                const errorBox = document.createElement('div');
+                errorBox.textContent = `⚠️ Erro ao buscar resultados: ${baseResults.error}`;
+                container.appendChild(errorBox);
+            } else {
+                baseResults.forEach((r, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'result';
+                    const articleId = `${base}_${index}`;
+                    div.innerHTML = `
+                        <label>
+                            <input type="checkbox" name="selected" value="${articleId}">
+                            <strong>${r.title}</strong><br>
+                            <em>${r.year}</em><br>
+                            <a href="${r.url}" target="_blank">Acessar</a>
+                        </label>
+                    `;
+                    selectedArticles.push({ id: articleId, ...r });
+                    container.appendChild(div);
+                });
+            }
         });
 
         document.getElementById('selection-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const selected = Array.from(document.querySelectorAll('input[name="selected"]:checked'))
-                .map(cb => results[cb.value]);
-            localStorage.setItem('selected_titles', JSON.stringify(selected));
+                .map(cb => cb.value);
+            const selectedData = selectedArticles.filter(a => selected.includes(a.id));
+            localStorage.setItem('selected_titles', JSON.stringify(selectedData));
             window.location.href = '/abstract-review';
         });
     </script>
 </body>
 </html>
+
