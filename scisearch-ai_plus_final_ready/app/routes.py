@@ -24,11 +24,9 @@ FILTER_OPTIONS = {
     # Futuras bases poderão ser adicionadas aqui...
 }
 
-
 @app.route('/')
 def index():
     return render_template('index.html', filter_options=FILTER_OPTIONS)
-
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -42,7 +40,6 @@ def analyze():
         return jsonify(pico_result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/results', methods=['POST'])
 def results():
@@ -75,3 +72,8 @@ def results():
         return jsonify({"results": results})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ✅ NOVO ENDPOINT: Página de revisão por resumo
+@app.route('/abstract-review')
+def abstract_review():
+    return render_template('abstract_review.html')
