@@ -1,96 +1,108 @@
-<!-- Arquivo: templates/summary_review.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Resumo por Base - SciSearch AI</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f1f5fa;
-            padding: 30px;
-        }
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-        }
-        .base-section {
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
-        }
-        .base-title {
-            font-size: 1.4rem;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        .results-count {
-            font-size: 1rem;
-            color: #777;
-            margin-bottom: 10px;
-        }
-        .title {
-            margin-bottom: 8px;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            background: #fafafa;
-        }
-        .title a {
-            text-decoration: none;
-            color: #0066cc;
-        }
-        .scroll-box {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            background: #fff;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Resumo por Base - SciSearch AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f1f5fa;
+      padding: 30px;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #222;
+      margin-bottom: 25px;
+    }
+    .base-section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    .base-title {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #0b3d91;
+    }
+    .results-count {
+      font-size: 1rem;
+      color: #444;
+      margin-bottom: 12px;
+    }
+    .scroll-box {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #d4dce2;
+      border-radius: 6px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+    .title {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .title a {
+      font-size: 1rem;
+      color: #0077cc;
+      text-decoration: none;
+    }
+    .title a:hover {
+      text-decoration: underline;
+    }
+    .title small {
+      display: block;
+      color: #888;
+      margin-top: 2px;
+    }
+  </style>
 </head>
 <body>
-    <h1>🔍 Resultados por Base</h1>
-    <div id="results-container"></div>
+  <h1>📊 Resultados Agrupados por Base de Dados</h1>
+  <div id="results-container"></div>
 
-    <script>
-        const data = JSON.parse(localStorage.getItem("base_results"));
+  <script>
+    const data = JSON.parse(localStorage.getItem("base_results") || "{}");
+    const container = document.getElementById("results-container");
 
-        if (!data || Object.keys(data).length === 0) {
-            document.getElementById("results-container").innerHTML = "<p>Nenhum resultado encontrado.</p>";
-        } else {
-            const container = document.getElementById("results-container");
-            for (const base in data) {
-                const results = data[base];
-                const div = document.createElement("div");
-                div.className = "base-section";
+    if (!data || Object.keys(data).length === 0) {
+      container.innerHTML = "<p>Nenhum resultado encontrado.</p>";
+    } else {
+      for (const base in data) {
+        const results = data[base];
+        const div = document.createElement("div");
+        div.className = "base-section";
 
-                const title = document.createElement("div");
-                title.className = "base-title";
-                title.innerText = base;
+        div.innerHTML = `
+          <div class="base-title">${base}</div>
+          <div class="results-count">${results.length} estudo(s) encontrado(s)</div>
+        `;
 
-                const count = document.createElement("div");
-                count.className = "results-count";
-                count.innerText = `${results.length} estudo(s) encontrado(s)`;
+        const scrollBox = document.createElement("div");
+        scrollBox.className = "scroll-box";
 
-                const scrollBox = document.createElement("div");
-                scrollBox.className = "scroll-box";
+        results.forEach((r) => {
+          const t = document.createElement("div");
+          t.className = "title";
+          const safeUrl = r.url || "#";
+          const safeTitle = r.title || "Título indisponível";
+          const safeYear = r.year || "Ano não informado";
 
-                results.forEach((r, i) => {
-                    const t = document.createElement("div");
-                    t.className = "title";
-                    t.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a><br><small>${r.year || ''}</small>`;
-                    scrollBox.appendChild(t);
-                });
+          t.innerHTML = `
+            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeTitle}</a>
+            <small>${safeYear}</small>
+          `;
+          scrollBox.appendChild(t);
+        });
 
-                div.appendChild(title);
-                div.appendChild(count);
-                div.appendChild(scrollBox);
-                container.appendChild(div);
-            }
-        }
-    </script>
+        div.appendChild(scrollBox);
+        container.appendChild(div);
+      }
+    }
+  </script>
 </body>
 </html>
