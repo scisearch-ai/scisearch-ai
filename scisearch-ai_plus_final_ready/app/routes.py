@@ -73,7 +73,12 @@ def results():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ✅ NOVO ENDPOINT: Página de revisão por resumo
+# ✅ Página de seleção por título (Fase 3)
 @app.route('/abstract-review')
 def abstract_review():
     return render_template('abstract_review.html')
+
+# ✅ Página de visualização geral por base (Fase 4)
+@app.route('/summary-review')
+def summary_review():
+    return render_template('summary_review.html')
