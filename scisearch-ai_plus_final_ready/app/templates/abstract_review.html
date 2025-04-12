@@ -1,0 +1,97 @@
+<!-- Arquivo: templates/abstract_review.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Revisão por Resumo - SciSearch AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .abstract-box {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 6px rgba(0,0,0,0.1);
+        }
+        .abstract-box h3 {
+            margin: 0 0 10px;
+        }
+        .abstract-box p {
+            margin: 10px 0;
+        }
+        .decision {
+            margin-top: 10px;
+        }
+        .decision label {
+            margin-right: 15px;
+        }
+        #finalize-btn {
+            margin-top: 30px;
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #finalize-btn:hover {
+            background-color: #3c9141;
+        }
+    </style>
+</head>
+<body>
+    <h2>Triagem por Resumo</h2>
+    <form id="abstract-form">
+        <div id="abstracts-container">
+            <!-- Resumos inseridos dinamicamente -->
+        </div>
+        <button type="submit" id="finalize-btn">Finalizar Seleção</button>
+    </form>
+
+    <script>
+        const selectedTitles = JSON.parse(localStorage.getItem('selected_titles') || '[]');
+
+        async function fetchAbstract(url) {
+            // Aqui simulamos um resumo. Para implementar real, usar BeautifulSoup/backend futuramente.
+            return "Resumo simulado. (Em breve: resumo real por scraping ou API).";
+        }
+
+        async function renderAbstracts() {
+            const container = document.getElementById('abstracts-container');
+
+            for (const article of selectedTitles) {
+                const abstractText = await fetchAbstract(article.url);
+
+                const div = document.createElement('div');
+                div.className = 'abstract-box';
+                div.innerHTML = `
+                    <h3>${article.title}</h3>
+                    <p><strong>Ano:</strong> ${article.year}</p>
+                    <p><strong>Resumo:</strong> ${abstractText}</p>
+                    <div class="decision">
+                        <label><input type="radio" name="decision_${article.title}" value="incluir" required> Incluir</label>
+                        <label><input type="radio" name="decision_${article.title}" value="excluir"> Excluir</label>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        document.getElementById("abstract-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            alert("Seleção por resumo finalizada. Em breve: exportação de relatório.");
+        });
+
+        renderAbstracts();
+    </script>
+</body>
+</html>
