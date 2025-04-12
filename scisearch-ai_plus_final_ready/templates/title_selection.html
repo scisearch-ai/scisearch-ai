@@ -1,0 +1,101 @@
+<!-- Arquivo: templates/title_selection.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Seleção de Títulos - SciSearch AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7faff;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #123;
+      margin-bottom: 20px;
+    }
+    .base-section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    }
+    .base-title {
+      font-size: 1.4rem;
+      color: #004488;
+      margin-bottom: 10px;
+    }
+    .scroll-box {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 6px;
+      background: #fdfdfd;
+    }
+    .item {
+      padding: 10px;
+      margin-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .item label {
+      cursor: pointer;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📑 Selecione os Títulos para Análise de Resumo</h1>
+  <form id="title-selection-form">
+    <div id="selection-container"></div>
+    <button type="submit">Avançar para Resumos</button>
+  </form>
+
+  <script>
+    const allResults = JSON.parse(localStorage.getItem("base_results") || "{}");
+    const container = document.getElementById("selection-container");
+
+    for (const base in allResults) {
+      const results = allResults[base];
+      const section = document.createElement("div");
+      section.className = "base-section";
+      section.innerHTML = `<div class="base-title">${base}</div>`;
+
+      const scrollBox = document.createElement("div");
+      scrollBox.className = "scroll-box";
+
+      results.forEach((result, index) => {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const id = `${base}_${index}`;
+        item.innerHTML = `
+          <label>
+            <input type="checkbox" name="selected_titles" value='${JSON.stringify(result)}'>
+            <strong>${result.title || 'Título indisponível'}</strong><br>
+            <small>${result.year || ''}</small>
+          </label>
+        `;
+        scrollBox.appendChild(item);
+      });
+
+      section.appendChild(scrollBox);
+      container.appendChild(section);
+    }
+
+    document.getElementById("title-selection-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const selected = Array.from(document.querySelectorAll("input[name='selected_titles']:checked"))
+        .map(cb => JSON.parse(cb.value));
+      localStorage.setItem("selected_titles", JSON.stringify(selected));
+      window.location.href = "/abstract-review";
+    });
+  </script>
+</body>
+</html>
