@@ -61,14 +61,14 @@
         const selectedTitles = JSON.parse(localStorage.getItem('selected_titles') || '[]');
 
         async function fetchAbstract(url) {
-            // Aqui simulamos um resumo. Para implementar real, usar BeautifulSoup/backend futuramente.
-            return "Resumo simulado. (Em breve: resumo real por scraping ou API).";
+            return "⚠️ Resumo simulado. Em breve: integração com APIs ou scraping para obter o conteúdo real.";
         }
 
         async function renderAbstracts() {
             const container = document.getElementById('abstracts-container');
 
             for (const article of selectedTitles) {
+                const encodedName = encodeURIComponent(article.title);
                 const abstractText = await fetchAbstract(article.url);
 
                 const div = document.createElement('div');
@@ -78,8 +78,12 @@
                     <p><strong>Ano:</strong> ${article.year}</p>
                     <p><strong>Resumo:</strong> ${abstractText}</p>
                     <div class="decision">
-                        <label><input type="radio" name="decision_${article.title}" value="incluir" required> Incluir</label>
-                        <label><input type="radio" name="decision_${article.title}" value="excluir"> Excluir</label>
+                        <label for="inclui_${encodedName}">
+                            <input type="radio" id="inclui_${encodedName}" name="decision_${encodedName}" value="incluir" required> Incluir
+                        </label>
+                        <label for="exclui_${encodedName}">
+                            <input type="radio" id="exclui_${encodedName}" name="decision_${encodedName}" value="excluir"> Excluir
+                        </label>
                     </div>
                 `;
                 container.appendChild(div);
@@ -88,7 +92,7 @@
 
         document.getElementById("abstract-form").addEventListener("submit", function(e) {
             e.preventDefault();
-            alert("Seleção por resumo finalizada. Em breve: exportação de relatório.");
+            alert("✅ Seleção por resumo finalizada. Em breve: exportação de relatório ou análise de qualidade.");
         });
 
         renderAbstracts();
