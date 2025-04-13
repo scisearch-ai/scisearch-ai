@@ -83,6 +83,7 @@
 
     <div class="section filters-section">
         <h3>Selecionar Bases de Dados e Filtros:</h3>
+        <label><input type="checkbox" id="select-all-bases" onchange="toggleAllBases(this)"> Selecionar todas as bases</label>
         <label><input type="checkbox" class="base-checkbox" value="PubMed" onchange="updateFilters()"> PubMed</label>
         <label><input type="checkbox" class="base-checkbox" value="Scopus" onchange="updateFilters()"> Scopus</label>
 
@@ -142,6 +143,14 @@
         document.getElementById("time").value = data.time || "";
 
         document.getElementById("picot-section").style.display = "block";
+    }
+
+    function toggleAllBases(checkbox) {
+        const allBaseCheckboxes = document.querySelectorAll('.base-checkbox');
+        allBaseCheckboxes.forEach(cb => {
+            cb.checked = checkbox.checked;
+        });
+        updateFilters();
     }
 
     function updateFilters() {
