@@ -2,10 +2,12 @@ from flask import Flask, render_template, request, jsonify
 from app.pico_analyzer import analyze_question
 from app.query_builder import QueryBuilder
 from app.evidence_fetcher import fetch_pubmed_data, fetch_scopus_data
-from app.triage_decorator import triage_article
 from app.triage_memory import load_memory, save_memory
+from app.triage_decorator import triage_article
+from app.triage_interface import triage_bp  # ✅ NOVO: importa blueprint da Fase 7
 
 app = Flask(__name__)
+app.register_blueprint(triage_bp)  # ✅ NOVO: registra a Fase 7 com IA
 
 # 🔎 Filtros específicos por base (usados no frontend dinâmico)
 FILTER_OPTIONS = {
@@ -92,20 +94,3 @@ def title_selection():
 @app.route('/abstract-review')
 def abstract_review():
     return render_template('abstract_review.html')
-
-# ✅ Fase 7: Triagem automática com IA e justificativa
-@app.route('/triage', methods=['POST'])
-def triage():
-    try:
-        data = request.get_json()
-        abstracts = data.get('abstracts', [])  # Lista de resumos
-        pico = data.get('pico', {})            # Estrutura PICOT
-
-        results = []
-        for abstract in abstracts:
-            decision = triage_article(abstract, pico)
-            results.append(decision)
-
-        return jsonify({"triage": results})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
