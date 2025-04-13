@@ -2,47 +2,54 @@
 
 import json
 from collections import defaultdict
+from typing import Dict, List
 
-# Memória compartilhada entre usuários (poderia ser um banco no futuro)
-class TriageMemory:
-    def __init__(self):
-        self.memory = defaultdict(list)  # {'included': [...], 'excluded': [...]} 
+# Memória central (para uso em todos os usuários)
+LEARNING_MEMORY: Dict[str, List[Dict]] = defaultdict(list)
 
-    def record_decision(self, decision_type, summary_text, pico):
-        # Armazena o resumo e a estrutura PICOT que justificaram a decisão
-        self.memory[decision_type].append({
-            "summary": summary_text,
-            "pico": pico
-        })
+def record_decision(summary: str, decision: str, explanation: str, pico: dict):
+    """
+    Armazena a decisão de inclusão/exclusão junto com explicação e estrutura PICOT.
+    """
+    key = summary.strip().lower()
+    LEARNING_MEMORY[key].append({
+        "decision": decision,
+        "explanation": explanation,
+        "pico": pico
+    })
 
-    def learn_keywords(self):
-        # Aprende com decisões anteriores baseando-se na frequência de termos por tipo de decisão
-        keywords = {"included": defaultdict(int), "excluded": defaultdict(int)}
+def learn_from_history(summary: str, pico: dict) -> str:
+    """
+    Tenta encontrar decisões anteriores semelhantes e retorna uma sugestão.
+    """
+    key = summary.strip().lower()
+    history = LEARNING_MEMORY.get(key, [])
 
-        for decision_type in ["included", "excluded"]:
-            for record in self.memory[decision_type]:
-                for key in ["Population", "Intervention", "Outcome"]:
-                    term = record["pico"].get(key, "").lower()
-                    if term:
-                        keywords[decision_type][term] += 1
+    if not history:
+        return "undecided"
 
-        return keywords
+    # Sistema simples de maioria
+    decisions = [entry["decision"] for entry in history]
+    included = decisions.count("included")
+    excluded = decisions.count("excluded")
 
-    def predict_decision(self, summary_text, pico):
-        # Estratégia simples de inferência baseada na similaridade de palavras-chave
-        keywords = self.learn_keywords()
-        score = {"included": 0, "excluded": 0}
+    return "included" if included >= excluded else "excluded"
 
-        for decision_type in ["included", "excluded"]:
-            for key in ["Population", "Intervention", "Outcome"]:
-                term = pico.get(key, "").lower()
-                if term in summary_text.lower():
-                    score[decision_type] += keywords[decision_type].get(term, 0)
+def export_learning_memory(filepath="learning_memory.json"):
+    """
+    Exporta o histórico para arquivo JSON (opcional).
+    """
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(LEARNING_MEMORY, f, indent=2, ensure_ascii=False)
 
-        if score["included"] >= score["excluded"]:
-            return "included"
-        else:
-            return "excluded"
-
-# Instância global para uso no app
-triage_memory = TriageMemory()
+def import_learning_memory(filepath="learning_memory.json"):
+    """
+    Reimporta o histórico de aprendizagem para uso posterior.
+    """
+    global LEARNING_MEMORY
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            LEARNING_MEMORY = defaultdict(list, data)
+    except FileNotFoundError:
+        pass
