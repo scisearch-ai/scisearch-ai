@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from app.pico_analyzer import analyze_question
 from app.query_builder import QueryBuilder
 from app.evidence_fetcher import fetch_pubmed_data, fetch_scopus_data
+from app.triage_decorator import triage_article
+from app.triage_memory import load_memory, save_memory
 
 app = Flask(__name__)
 
@@ -91,8 +93,19 @@ def title_selection():
 def abstract_review():
     return render_template('abstract_review.html')
 
-# 🔄 (Futuro): Endpoint para exportar CSV ou relatório de estudos selecionados
-# @app.route('/export')
-# def export():
-#     return "Exportação ainda não implementada."
+# ✅ Fase 7: Triagem automática com IA e justificativa
+@app.route('/triage', methods=['POST'])
+def triage():
+    try:
+        data = request.get_json()
+        abstracts = data.get('abstracts', [])  # Lista de resumos
+        pico = data.get('pico', {})            # Estrutura PICOT
 
+        results = []
+        for abstract in abstracts:
+            decision = triage_article(abstract, pico)
+            results.append(decision)
+
+        return jsonify({"triage": results})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
