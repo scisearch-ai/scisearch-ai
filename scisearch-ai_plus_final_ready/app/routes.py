@@ -112,4 +112,3 @@ def triage():
 
 # Registra também o blueprint da fase 7, se houver outros endpoints específicos.
 bp.register_blueprint(triage_bp)
-
