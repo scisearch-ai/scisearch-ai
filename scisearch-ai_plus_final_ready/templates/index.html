@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SciSearch AI - Sistema Inteligente PICOT</title>
+  <title>SciSearch AI - Intelligent PICOT System</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -50,44 +50,44 @@
 <body>
 
   <h1>🔍 SciSearch AI</h1>
-  <p>Insira sua pergunta clínica abaixo. A estrutura PICOT será identificada automaticamente.</p>
+  <p>Please enter your clinical question below. The PICOT structure will be automatically detected.</p>
 
   <div class="section">
-    <label for="question">Pergunta Clínica:</label>
-    <textarea id="question" rows="3" placeholder="Ex: O exercício físico melhora a mobilidade de idosos com osteoartrite?"></textarea>
-    <button onclick="analyzeQuestion()">Detectar Estrutura PICOT</button>
+    <label for="question">Clinical Question:</label>
+    <textarea id="question" rows="3" placeholder="E.g., Does physical exercise improve mobility in elderly patients with osteoarthritis?"></textarea>
+    <button onclick="analyzeQuestion()">Detect PICOT Structure</button>
   </div>
 
   <div class="section" id="picot-section" style="display: none;">
-    <h2>Estrutura PICOT Sugerida (editável)</h2>
+    <h2>Suggested PICOT Structure (editable)</h2>
     <div class="picot-boxes">
       <div>
-        <label for="population">P - População:</label>
+        <label for="population">P - Population:</label>
         <input type="text" id="population">
       </div>
       <div>
-        <label for="intervention">I - Intervenção:</label>
+        <label for="intervention">I - Intervention:</label>
         <input type="text" id="intervention">
       </div>
       <div>
-        <label for="comparison">C - Comparação:</label>
+        <label for="comparison">C - Comparison:</label>
         <input type="text" id="comparison">
       </div>
       <div>
-        <label for="outcome">O - Desfecho:</label>
+        <label for="outcome">O - Outcome:</label>
         <input type="text" id="outcome">
       </div>
       <div>
-        <label for="time">T - Tempo (opcional):</label>
+        <label for="time">T - Time (optional):</label>
         <input type="text" id="time">
       </div>
     </div>
 
     <div class="section filters-section">
-      <h3>Selecionar Bases de Dados e Filtros:</h3>
+      <h3>Select Databases and Filters:</h3>
       <label>
         <input type="checkbox" id="select-all-bases" onchange="toggleAllBases(this)">
-        Selecionar todas as bases
+        Select all databases
       </label>
       <label>
         <input type="checkbox" class="base-checkbox" value="PubMed" onchange="updateFilters()"> PubMed
@@ -96,14 +96,14 @@
         <input type="checkbox" class="base-checkbox" value="Scopus" onchange="updateFilters()"> Scopus
       </label>
       <div id="filters-container"></div>
-      <label for="operator">Operador Lógico:</label>
+      <label for="operator">Logical Operator:</label>
       <select id="operator">
         <option value="AND">AND</option>
         <option value="OR">OR</option>
       </select>
     </div>
 
-    <button onclick="startSearch()">Buscar</button>
+    <button onclick="startSearch()">Search</button>
   </div>
 
   <script>
@@ -127,7 +127,7 @@
     async function analyzeQuestion() {
       const question = document.getElementById("question").value;
       if (!question) {
-        alert("Por favor, insira uma pergunta clínica.");
+        alert("Please enter a clinical question.");
         return;
       }
       try {
@@ -137,7 +137,7 @@
           body: JSON.stringify({ question })
         });
         if (!response.ok) {
-          alert("Erro na análise da pergunta.");
+          alert("Error analyzing the question.");
           return;
         }
         const data = await response.json();
@@ -148,7 +148,7 @@
         document.getElementById("time").value = data.time || "";
         document.getElementById("picot-section").style.display = "block";
       } catch (err) {
-        alert("Erro: " + err.message);
+        alert("Error: " + err.message);
       }
     }
 
@@ -207,7 +207,7 @@
         window.location.href = "/results";
       })
       .catch(err => {
-        alert("Erro ao buscar resultados: " + err.message);
+        alert("Error fetching results: " + err.message);
       });
     }
   </script>
