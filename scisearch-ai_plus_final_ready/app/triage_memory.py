@@ -52,6 +52,36 @@ def import_learning_memory(filepath="learning_memory.json"):
     except FileNotFoundError:
         pass
 
-# Aliases para compatibilidade com routes.py
+# Classe que encapsula as funcionalidades de memória para ser importada por outros módulos
+class TriageMemory:
+    @staticmethod
+    def record(summary: str, decision: str, explanation: str, pico: dict):
+        """
+        Registra uma decisão de triagem.
+        """
+        record_decision(summary, decision, explanation, pico)
+
+    @staticmethod
+    def suggest(summary: str, pico: dict) -> str:
+        """
+        Retorna uma sugestão baseada no histórico de decisões para o resumo dado.
+        """
+        return learn_from_history(summary, pico)
+
+    @staticmethod
+    def export(filepath="learning_memory.json"):
+        """
+        Exporta o histórico para um arquivo JSON.
+        """
+        export_learning_memory(filepath)
+
+    @staticmethod
+    def import_memory(filepath="learning_memory.json"):
+        """
+        Importa o histórico do arquivo JSON para a memória.
+        """
+        import_learning_memory(filepath)
+
+# Aliases para compatibilidade com outros módulos (se esperado)
 load_memory = import_learning_memory
 save_memory = export_learning_memory
