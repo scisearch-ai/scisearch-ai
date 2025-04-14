@@ -4,10 +4,10 @@ from app.query_builder import QueryBuilder
 from app.evidence_fetcher import fetch_pubmed_data, fetch_scopus_data
 from app.triage_memory import load_memory, save_memory
 from app.triage_decorator import triage_article
-from app.triage_interface import triage_bp  # ✅ NOVO: importa blueprint da Fase 7
+from app.triage_interface import triage_bp  # Novo: blueprint para fase 7
 
 app = Flask(__name__)
-app.register_blueprint(triage_bp)  # ✅ NOVO: registra a Fase 7 com IA
+app.register_blueprint(triage_bp)  # Registra o blueprint da fase 7
 
 # 🔎 Filtros específicos por base (usados no frontend dinâmico)
 FILTER_OPTIONS = {
@@ -53,9 +53,9 @@ def results():
     try:
         data = request.get_json()
         pico = data.get('pico', {})
-        selected_bases = data.get('bases', [])  # ["PubMed", "Scopus"]
-        filters = data.get('filters', {})        # {"PubMed": [...], "Scopus": [...]}
-        operator = data.get('operator', 'AND')   # "AND" / "OR"
+        selected_bases = data.get('bases', [])  # Ex: ["PubMed", "Scopus"]
+        filters = data.get('filters', {})        # Ex: {"PubMed": [...], "Scopus": [...]}
+        operator = data.get('operator', 'AND')   # "AND" ou "OR"
         year_range = data.get('year_range')      # Ex: "2015:2024"
 
         results = {}
@@ -90,7 +90,27 @@ def summary_review():
 def title_selection():
     return render_template('title_selection.html')
 
-# ✅ Fase 6 (inicial): Triagem por resumo com inclusão/exclusão
+# ✅ Fase 6: Triagem por resumo com inclusão/exclusão
 @app.route('/abstract-review')
 def abstract_review():
     return render_template('abstract_review.html')
+
+# ✅ Fase 7: Triagem automática com IA – Avaliação e Justificativa
+@app.route('/triage', methods=['POST'])
+def triage():
+    try:
+        data = request.get_json()
+        abstracts = data.get('abstracts', [])  # Lista de resumos (string ou dicionário)
+        pico = data.get('pico', {})           # Estrutura PICOT
+
+        triage_results = []
+        for abstract in abstracts:
+            decision = triage_article(abstract, pico)
+            triage_results.append(decision)
+
+        return jsonify({"triage": triage_results})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
