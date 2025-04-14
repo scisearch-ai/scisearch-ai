@@ -3,14 +3,14 @@ from flask import Blueprint, render_template, request, jsonify
 from app.pico_analyzer import analyze_question
 from app.query_builder import QueryBuilder
 from app.evidence_fetcher import fetch_pubmed_data, fetch_scopus_data
-from app.triage_memory import load_memory, save_memory
+from app.triage_memory import load_memory, save_memory, save_user_corrections
 from app.triage_decorator import triage_article
-from app.triage_interface import triage_bp  # Novo: blueprint para fase 7
+from app.triage_interface import triage_bp  # Blueprint for Phase 7
 
-# Cria um blueprint para as rotas
+# Create a blueprint for the routes
 bp = Blueprint('routes', __name__)
 
-# Rota para a página inicial
+# Route for the home page
 @bp.route('/')
 def index():
     FILTER_OPTIONS = {
@@ -28,11 +28,11 @@ def index():
             "DOCTYPE(ch)",  # Book Chapter
             "DOCTYPE(ed)",  # Editorial
         ],
-        # Adicione novas bases futuramente...
+        # Add new databases in the future...
     }
     return render_template('index.html', filter_options=FILTER_OPTIONS)
 
-# Rota para análise automática da estrutura PICOT (Fase 1)
+# Route for automatic PICOT structure analysis (Phase 1)
 @bp.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -41,12 +41,26 @@ def analyze():
         if not question:
             return jsonify({"error": "Empty question"}), 400
 
+        # analyze_question should handle language detection, translation to English,
+        # extraction of PICOT elements, and mapping to MeSH terms.
         pico_result = analyze_question(question)
         return jsonify(pico_result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Rota para construção de queries e aplicação de filtros (Fases 2 e 3)
+# Route to save user corrections for the PICOT structure
+@bp.route('/save_picot_corrections', methods=['POST'])
+def save_picot_corrections():
+    try:
+        data = request.get_json()
+        corrected_picot = data.get('pico', {})
+        # Save the user corrections for training/future suggestions.
+        save_user_corrections(corrected_picot)
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Route for building queries and applying filters (Phases 2 and 3)
 @bp.route('/results', methods=['POST'])
 def results():
     try:
@@ -78,22 +92,22 @@ def results():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Rota para visualização agrupada por base (Fase 4)
+# Route for grouped view by database (Phase 4)
 @bp.route('/summary-review')
 def summary_review():
     return render_template('summary_review.html')
 
-# Rota para seleção manual de títulos (Fase 5)
+# Route for manual title selection (Phase 5)
 @bp.route('/title-selection')
 def title_selection():
     return render_template('title_selection.html')
 
-# Rota para triagem por resumo (Fase 6)
+# Route for abstract review (Phase 6)
 @bp.route('/abstract-review')
 def abstract_review():
     return render_template('abstract_review.html')
 
-# Rota para triagem automática com IA (Fase 7)
+# Route for AI-powered triage (Phase 7)
 @bp.route('/triage', methods=['POST'])
 def triage():
     try:
@@ -110,5 +124,5 @@ def triage():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Registra também o blueprint da fase 7, se houver outros endpoints específicos.
+# Also register the blueprint for Phase 7 endpoints, if any.
 bp.register_blueprint(triage_bp)
