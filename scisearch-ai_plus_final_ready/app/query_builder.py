@@ -4,13 +4,16 @@ class QueryBuilder:
     @staticmethod
     def build_query(base, main_term, filters, operator="AND"):
         """
-        Constrói uma query adaptada à base científica com operadores booleanos.
+        Constructs a query adapted to the scientific database using Boolean operators.
 
         Args:
-            base (str): Nome da base ('PubMed', 'Scopus', etc.)
-            main_term (str): Termo principal de busca (normalmente a pergunta PICOT em inglês)
-            filters (list): Lista de filtros selecionados (ex: ["RCT", "Meta-Analysis"])
-            operator (str): Operador lógico para combinar filtros ("AND" ou "OR")
+            base (str): Name of the database (e.g., 'PubMed', 'Scopus', etc.)
+            main_term (str): Main search term (usually the PICOT question in English)
+            filters (list): List of selected filters (e.g., ["RCT", "Meta-Analysis"])
+            operator (str): Logical operator to combine filters ("AND" or "OR")
+        
+        Returns:
+            str: The constructed query.
         """
         if not filters:
             return main_term
@@ -52,11 +55,14 @@ class QueryBuilder:
     @staticmethod
     def sanitize_query(base, raw_query):
         """
-        Sanitiza a query para evitar erros de sintaxe específicos por base.
+        Sanitizes the query to avoid syntax errors specific to each database.
 
         Args:
-            base (str): Nome da base
-            raw_query (str): Query gerada
+            base (str): Name of the database.
+            raw_query (str): The generated query.
+        
+        Returns:
+            str: The sanitized query.
         """
         if base in ["PubMed", "Scopus", "Embase"]:
             return raw_query.replace('"', "'")
