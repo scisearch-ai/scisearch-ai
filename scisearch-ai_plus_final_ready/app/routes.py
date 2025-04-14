@@ -5,15 +5,14 @@ from app.query_builder import QueryBuilder
 from app.evidence_fetcher import fetch_pubmed_data, fetch_scopus_data
 from app.triage_memory import load_memory, save_memory
 from app.triage_decorator import triage_article
-from app.triage_interface import triage_bp  # Blueprint da fase 7, se necessário
+from app.triage_interface import triage_bp  # Novo: blueprint para fase 7
 
-# Crie um blueprint para as rotas deste módulo
+# Cria um blueprint para as rotas
 bp = Blueprint('routes', __name__)
 
 # Rota para a página inicial
 @bp.route('/')
 def index():
-    # Defina aqui os filtros – o mesmo que você já tem
     FILTER_OPTIONS = {
         "PubMed": [
             "Randomized Controlled Trial[Publication Type]",
@@ -33,7 +32,7 @@ def index():
     }
     return render_template('index.html', filter_options=FILTER_OPTIONS)
 
-# Rota para a análise automática da estrutura PICOT (Fase 1)
+# Rota para análise automática da estrutura PICOT (Fase 1)
 @bp.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -47,7 +46,7 @@ def analyze():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Rota para a construção de queries (Fases 2 e 3)
+# Rota para construção de queries e aplicação de filtros (Fases 2 e 3)
 @bp.route('/results', methods=['POST'])
 def results():
     try:
@@ -79,22 +78,22 @@ def results():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Rota para a visualização por base (Fase 4)
+# Rota para visualização agrupada por base (Fase 4)
 @bp.route('/summary-review')
 def summary_review():
     return render_template('summary_review.html')
 
-# Rota para a seleção manual de títulos (Fase 5)
+# Rota para seleção manual de títulos (Fase 5)
 @bp.route('/title-selection')
 def title_selection():
     return render_template('title_selection.html')
 
-# Rota para a triagem por resumo (Fase 6)
+# Rota para triagem por resumo (Fase 6)
 @bp.route('/abstract-review')
 def abstract_review():
     return render_template('abstract_review.html')
 
-# Rota para a triagem automática com IA (Fase 7)
+# Rota para triagem automática com IA (Fase 7)
 @bp.route('/triage', methods=['POST'])
 def triage():
     try:
@@ -111,9 +110,6 @@ def triage():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Se você quiser incorporar também o blueprint da Fase 7 (se ele for definido em outro módulo)
+# Registra também o blueprint da fase 7, se houver outros endpoints específicos.
 bp.register_blueprint(triage_bp)
 
-# Aliases para compatibilidade (se necessário)
-load_memory = load_memory
-save_memory = save_memory
