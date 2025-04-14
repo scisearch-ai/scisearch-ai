@@ -10,6 +10,12 @@ LEARNING_MEMORY: Dict[str, List[Dict]] = defaultdict(list)
 def record_decision(summary: str, decision: str, explanation: str, pico: dict):
     """
     Armazena a decisão de inclusão/exclusão junto com a explicação e a estrutura PICOT.
+    
+    Args:
+        summary (str): Resumo do artigo.
+        decision (str): Decisão, por exemplo, "included" ou "excluded".
+        explanation (str): Breve justificativa da decisão.
+        pico (dict): Estrutura PICOT associada.
     """
     key = summary.strip().lower()
     LEARNING_MEMORY[key].append({
@@ -22,6 +28,13 @@ def learn_from_history(summary: str, pico: dict) -> str:
     """
     Tenta encontrar decisões anteriores semelhantes e retorna uma sugestão.
     Se não houver histórico, retorna "undecided".
+    
+    Args:
+        summary (str): Resumo do artigo.
+        pico (dict): Estrutura PICOT associada (não utilizada na lógica atual, mas incluída para futuros refinamentos).
+    
+    Returns:
+        str: "included", "excluded" ou "undecided"
     """
     key = summary.strip().lower()
     history = LEARNING_MEMORY.get(key, [])
@@ -36,6 +49,9 @@ def learn_from_history(summary: str, pico: dict) -> str:
 def export_learning_memory(filepath="learning_memory.json"):
     """
     Exporta o histórico de aprendizagem para um arquivo JSON.
+    
+    Args:
+        filepath (str): Caminho para o arquivo de saída.
     """
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(LEARNING_MEMORY, f, indent=2, ensure_ascii=False)
@@ -43,6 +59,9 @@ def export_learning_memory(filepath="learning_memory.json"):
 def import_learning_memory(filepath="learning_memory.json"):
     """
     Reimporta o histórico de aprendizagem a partir de um arquivo JSON para uso posterior.
+    
+    Args:
+        filepath (str): Caminho para o arquivo de entrada.
     """
     global LEARNING_MEMORY
     try:
@@ -82,6 +101,7 @@ class TriageMemory:
         """
         import_learning_memory(filepath)
 
-# Aliases para compatibilidade com outros módulos (se esperado)
+# Aliases para compatibilidade com outros módulos
 load_memory = import_learning_memory
 save_memory = export_learning_memory
+update_memory = record_decision  # Adiciona o alias update_memory para atualizar a memória
