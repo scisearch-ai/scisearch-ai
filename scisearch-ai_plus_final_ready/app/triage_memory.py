@@ -1,107 +1,42 @@
-# app/triage_memory.py
-
 import json
-from collections import defaultdict
-from typing import Dict, List
+import os
 
-# Memória central (para uso em todos os usuários)
-LEARNING_MEMORY: Dict[str, List[Dict]] = defaultdict(list)
+# Define o caminho para o arquivo que armazenará as correções do usuário
+USER_CORRECTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "user_corrections.json")
 
-def record_decision(summary: str, decision: str, explanation: str, pico: dict):
+def load_memory():
     """
-    Armazena a decisão de inclusão/exclusão junto com a explicação e a estrutura PICOT.
-    
-    Args:
-        summary (str): Resumo do artigo.
-        decision (str): Decisão, por exemplo, "included" ou "excluded".
-        explanation (str): Breve justificativa da decisão.
-        pico (dict): Estrutura PICOT associada.
-    """
-    key = summary.strip().lower()
-    LEARNING_MEMORY[key].append({
-        "decision": decision,
-        "explanation": explanation,
-        "pico": pico
-    })
-
-def learn_from_history(summary: str, pico: dict) -> str:
-    """
-    Tenta encontrar decisões anteriores semelhantes e retorna uma sugestão.
-    Se não houver histórico, retorna "undecided".
-    
-    Args:
-        summary (str): Resumo do artigo.
-        pico (dict): Estrutura PICOT associada (não utilizada na lógica atual, mas incluída para futuros refinamentos).
+    Loads the user corrections memory from the JSON file.
     
     Returns:
-        str: "included", "excluded" ou "undecided"
+        dict: A dictionary with saved corrections. Returns an empty dict if the file does not exist.
     """
-    key = summary.strip().lower()
-    history = LEARNING_MEMORY.get(key, [])
-    if not history:
-        return "undecided"
-    # Sistema simples de maioria
-    decisions = [entry["decision"] for entry in history]
-    included = decisions.count("included")
-    excluded = decisions.count("excluded")
-    return "included" if included >= excluded else "excluded"
+    if os.path.exists(USER_CORRECTIONS_FILE):
+        with open(USER_CORRECTIONS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
 
-def export_learning_memory(filepath="learning_memory.json"):
+def save_memory(memory):
     """
-    Exporta o histórico de aprendizagem para um arquivo JSON.
+    Saves the user corrections memory to the JSON file.
     
     Args:
-        filepath (str): Caminho para o arquivo de saída.
+        memory (dict): The dictionary containing the corrections data.
     """
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(LEARNING_MEMORY, f, indent=2, ensure_ascii=False)
+    with open(USER_CORRECTIONS_FILE, "w", encoding="utf-8") as f:
+        json.dump(memory, f, indent=2)
 
-def import_learning_memory(filepath="learning_memory.json"):
+def save_user_corrections(corrected_picot):
     """
-    Reimporta o histórico de aprendizagem a partir de um arquivo JSON para uso posterior.
+    Saves the corrected PICOT structure provided by the user into the memory.
+    This function appends the corrected structure to a list of corrections.
     
     Args:
-        filepath (str): Caminho para o arquivo de entrada.
+        corrected_picot (dict): The corrected PICOT structure.
     """
-    global LEARNING_MEMORY
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            LEARNING_MEMORY = defaultdict(list, data)
-    except FileNotFoundError:
-        pass
-
-# Classe que encapsula as funcionalidades de memória para ser importada por outros módulos
-class TriageMemory:
-    @staticmethod
-    def record(summary: str, decision: str, explanation: str, pico: dict):
-        """
-        Registra uma decisão de triagem.
-        """
-        record_decision(summary, decision, explanation, pico)
-
-    @staticmethod
-    def suggest(summary: str, pico: dict) -> str:
-        """
-        Retorna uma sugestão baseada no histórico de decisões para o resumo dado.
-        """
-        return learn_from_history(summary, pico)
-
-    @staticmethod
-    def export(filepath="learning_memory.json"):
-        """
-        Exporta o histórico para um arquivo JSON.
-        """
-        export_learning_memory(filepath)
-
-    @staticmethod
-    def import_memory(filepath="learning_memory.json"):
-        """
-        Importa o histórico do arquivo JSON para a memória.
-        """
-        import_learning_memory(filepath)
-
-# Aliases para compatibilidade com outros módulos
-load_memory = import_learning_memory
-save_memory = export_learning_memory
-update_memory = record_decision  # Adiciona o alias update_memory para atualizar a memória
+    memory = load_memory()
+    # Usaremos uma chave "corrections" para armazenar as correções em uma lista
+    if "corrections" not in memory:
+        memory["corrections"] = []
+    memory["corrections"].append(corrected_picot)
+    save_memory(memory)
