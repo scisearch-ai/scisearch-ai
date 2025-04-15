@@ -75,7 +75,6 @@
       color: #555;
       margin-top: 5px;
     }
-    /* Style for the publication year range input */
     .year-range-section {
       margin-top: 20px;
     }
@@ -126,17 +125,15 @@
       <div class="database-grid">
         <div class="database-card">
           <input type="checkbox" class="database-checkbox" value="PubMed" onchange="updateFilters()">
-          <!-- Insira o caminho correto da imagem do PubMed -->
           <img src="static/images/pubmed.png" alt="PubMed Logo">
           <span>PubMed</span>
         </div>
         <div class="database-card">
           <input type="checkbox" class="database-checkbox" value="Scopus" onchange="updateFilters()">
-          <!-- Insira o caminho correto da imagem do Scopus -->
           <img src="static/images/scopus.png" alt="Scopus Logo">
           <span>Scopus</span>
         </div>
-        <!-- Add additional database cards here -->
+        <!-- Add additional database cards here if needed -->
       </div>
       <div id="filters-container"></div>
       <div class="advanced-note">
@@ -153,6 +150,9 @@
   </div>
 
   <script>
+    // Debug: Display a message when the script starts
+    console.log("Script loaded");
+
     const FILTER_OPTIONS = {
       "PubMed": [
         "Randomized Controlled Trial[Publication Type]",
@@ -172,6 +172,7 @@
 
     async function analyzeQuestion() {
       const question = document.getElementById("question").value;
+      console.log("Analyzing question:", question);
       if (!question) {
         alert("Please enter a clinical question.");
         return;
@@ -182,11 +183,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question })
         });
+        console.log("Response status:", response.status);
         if (!response.ok) {
           alert("Error analyzing the question.");
           return;
         }
         const data = await response.json();
+        console.log("Analyze response:", data);
         document.getElementById("population").value = data.population || "";
         document.getElementById("intervention").value = data.intervention || "";
         document.getElementById("comparison").value = data.comparison || "";
@@ -194,11 +197,13 @@
         document.getElementById("time").value = data.time || "";
         document.getElementById("picot-section").style.display = "block";
       } catch (err) {
+        console.error("Error in analyzeQuestion:", err);
         alert("Error: " + err.message);
       }
     }
 
     function toggleAllDatabases(checkbox) {
+      console.log("Toggle all databases, checked:", checkbox.checked);
       const allDBCheckboxes = document.querySelectorAll('.database-checkbox');
       allDBCheckboxes.forEach(cb => {
         cb.checked = checkbox.checked;
@@ -208,6 +213,7 @@
 
     function updateFilters() {
       const selectedBases = Array.from(document.querySelectorAll('.database-checkbox:checked')).map(cb => cb.value);
+      console.log("Selected bases:", selectedBases);
       const container = document.getElementById("filters-container");
       container.innerHTML = "";
       selectedBases.forEach(base => {
@@ -233,15 +239,18 @@
         outcome: document.getElementById("outcome").value,
         time: document.getElementById("time").value
       };
+      console.log("PICOT structure:", pico);
 
       const selectedBases = Array.from(document.querySelectorAll('.database-checkbox:checked')).map(cb => cb.value);
       const filters = {};
       selectedBases.forEach(base => {
         filters[base] = Array.from(document.querySelectorAll(`input[name="filter_${base}"]:checked`)).map(cb => cb.value);
       });
+      console.log("Filters selected:", filters);
 
       // Retrieve the publication year range
       const year_range = document.getElementById("year_range").value;
+      console.log("Year range:", year_range);
 
       // The operator is set internally as "AND" by default.
       const operator = "AND"; 
@@ -253,10 +262,12 @@
       })
       .then(res => res.json())
       .then(data => {
+        console.log("Search results:", data);
         localStorage.setItem("search_results", JSON.stringify(data));
-        window.location.href = "/results";
+        window.location.href = "/results";  // A rota "/results" deve ser chamada via POST e a página de resultados lida via JavaScript.
       })
       .catch(err => {
+        console.error("Error in startSearch:", err);
         alert("Error fetching results: " + err.message);
       });
     }
