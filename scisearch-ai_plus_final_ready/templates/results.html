@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search Results – SciSearch AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f8ff;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .base-section {
+      margin-top: 25px;
+      padding: 15px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    pre {
+      background: #eee;
+      padding: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Search Results</h1>
+  <div id="results-container">
+    <!-- Aqui o JavaScript vai injetar os resultados -->
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const raw = localStorage.getItem("search_results");
+      if (!raw) {
+        document.getElementById("results-container").innerHTML =
+          "<p>No results found. Try performing a search first.</p>";
+        return;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        document.getElementById("results-container").innerHTML =
+          "<p>Error parsing saved results.</p>";
+        console.error(err);
+        return;
+      }
+
+      const container = document.getElementById("results-container");
+      const results = data.results || {};
+
+      // Para cada base, exibe seção
+      Object.keys(results).forEach(base => {
+        const section = document.createElement("div");
+        section.className = "base-section";
+
+        const title = document.createElement("h2");
+        title.textContent = base;
+        section.appendChild(title);
+
+        const pre = document.createElement("pre");
+        pre.textContent = JSON.stringify(results[base], null, 2);
+        section.appendChild(pre);
+
+        container.appendChild(section);
+      });
+    });
+  </script>
+
+</body>
+</html>
