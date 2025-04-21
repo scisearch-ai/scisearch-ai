@@ -11,19 +11,40 @@
       background: #f5f8ff;
     }
     h1 {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
     .base-section {
-      margin-top: 25px;
+      margin-bottom: 30px;
       padding: 15px;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-    pre {
-      background: #eee;
-      padding: 10px;
-      overflow-x: auto;
+    .base-section h2 {
+      margin-top: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #eef2ff;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -31,33 +52,34 @@
 
   <h1>Search Results</h1>
   <div id="results-container">
-    <!-- Aqui o JavaScript vai injetar os resultados -->
+    <!-- JavaScript injeta as tabelas aqui -->
   </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const raw = localStorage.getItem("search_results");
+      const container = document.getElementById("results-container");
+
       if (!raw) {
-        document.getElementById("results-container").innerHTML =
-          "<p>No results found. Try performing a search first.</p>";
+        container.innerHTML = "<p>No results found. Perform a search first.</p>";
         return;
       }
 
       let data;
       try {
         data = JSON.parse(raw);
-      } catch (err) {
-        document.getElementById("results-container").innerHTML =
-          "<p>Error parsing saved results.</p>";
-        console.error(err);
+      } catch {
+        container.innerHTML = "<p>Error parsing saved results.</p>";
         return;
       }
 
-      const container = document.getElementById("results-container");
       const results = data.results || {};
+      if (Object.keys(results).length === 0) {
+        container.innerHTML = "<p>No results data available.</p>";
+        return;
+      }
 
-      // Para cada base, exibe seção
-      Object.keys(results).forEach(base => {
+      Object.entries(results).forEach(([base, baseData]) => {
         const section = document.createElement("div");
         section.className = "base-section";
 
@@ -65,10 +87,83 @@
         title.textContent = base;
         section.appendChild(title);
 
-        const pre = document.createElement("pre");
-        pre.textContent = JSON.stringify(results[base], null, 2);
-        section.appendChild(pre);
+        // Tenta extrair um array de artigos
+        let articles = [];
+        if (Array.isArray(baseData)) {
+          articles = baseData;
+        } else if (Array.isArray(baseData.articles)) {
+          articles = baseData.articles;
+        } else if (Array.isArray(baseData.hits)) {
+          articles = baseData.hits;
+        } else {
+          // fallback: mostrar JSON bruto se não for array conhecido
+          const pre = document.createElement("pre");
+          pre.textContent = JSON.stringify(baseData, null, 2);
+          section.appendChild(pre);
+          container.appendChild(section);
+          return;
+        }
 
+        if (articles.length === 0) {
+          section.appendChild(document.createElement("p")).textContent = "No articles found.";
+          container.appendChild(section);
+          return;
+        }
+
+        // Monta tabela
+        const table = document.createElement("table");
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Authors</th>
+              <th>Journal</th>
+              <th>Year</th>
+            </tr>
+          </thead>
+        `;
+        const tbody = document.createElement("tbody");
+
+        articles.forEach(article => {
+          const tr = document.createElement("tr");
+
+          // Title com link, se existir URL
+          const tdTitle = document.createElement("td");
+          if (article.url) {
+            const a = document.createElement("a");
+            a.href = article.url;
+            a.textContent = article.title || "No title";
+            a.target = "_blank";
+            tdTitle.appendChild(a);
+          } else {
+            tdTitle.textContent = article.title || article.name || "No title";
+          }
+          tr.appendChild(tdTitle);
+
+          // Authors
+          const tdAuthors = document.createElement("td");
+          if (Array.isArray(article.authors)) {
+            tdAuthors.textContent = article.authors.join(", ");
+          } else {
+            tdAuthors.textContent = article.authors || "";
+          }
+          tr.appendChild(tdAuthors);
+
+          // Journal / Source
+          const tdJournal = document.createElement("td");
+          tdJournal.textContent = article.journal || article.source || "";
+          tr.appendChild(tdJournal);
+
+          // Year / PubYear
+          const tdYear = document.createElement("td");
+          tdYear.textContent = article.year || article.pubYear || "";
+          tr.appendChild(tdYear);
+
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        section.appendChild(table);
         container.appendChild(section);
       });
     });
