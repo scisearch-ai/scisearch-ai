@@ -1,20 +1,26 @@
-from flask import Flask
+# main.py
 import os
-from app.routes import bp as routes_blueprint  # Importa o blueprint das rotas
+from flask import Flask
+from app.routes import bp as routes_blueprint  # Blueprint das rotas
 
-# Obtém o diretório atual deste arquivo
-current_dir = os.path.dirname(os.path.abspath(__file__))
+# Diretório base (onde está este arquivo)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Define o caminho absoluto para a pasta de templates (garanta que ela exista e contenha os arquivos HTML)
-template_path = os.path.join(current_dir, "templates")
+# Pasta de templates e pasta de arquivos estáticos
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-# Cria a aplicação Flask especificando o diretório dos templates
-app = Flask(__name__, template_folder=template_path)
+app = Flask(
+    __name__,
+    template_folder=TEMPLATE_DIR,
+    static_folder=STATIC_DIR
+)
 
-# Registra o blueprint que contém todas as rotas da aplicação
+# Registrar todas as rotas do blueprint
 app.register_blueprint(routes_blueprint)
 
 if __name__ == "__main__":
-    # Render.com define a porta através da variável de ambiente PORT; se não estiver definida, utiliza 10000.
+    # Porta definida pelo Render (ou 10000 por padrão)
     port = int(os.environ.get("PORT", 10000))
+    # Habilita debug em desenvolvimento; em produção, considere remover debug=True
     app.run(host="0.0.0.0", port=port, debug=True)
