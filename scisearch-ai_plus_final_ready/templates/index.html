@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SciSearch AI - Intelligent PICOT System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SciSearch AI – Intelligent PICOT System</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,61 +22,72 @@
       margin-top: 10px;
       font-weight: bold;
     }
-    input, textarea, select, button {
+
+    /* Apenas estes ocupam 100% de largura */
+    input[type="text"],
+    textarea,
+    select {
       width: 100%;
       padding: 8px;
       font-size: 1rem;
       margin-top: 5px;
     }
+
+    /* Botões inline, sem stretch total */
     button {
-      margin-top: 20px;
+      display: inline-block;
       padding: 10px 25px;
+      font-size: 1rem;
       cursor: pointer;
+      margin-top: 20px;
     }
+
+    /* Checkboxes mantêm tamanho natural */
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
+
     .picot-boxes {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
+
     .database-selection {
       margin-top: 20px;
     }
     .database-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 10px;
     }
     .database-card {
       display: flex;
       align-items: center;
-      padding: 10px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      background-color: #fff;
-      box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+      border-radius: 5px;
+      background: #fff;
+      padding: 10px;
+      transition: background-color 0.2s;
     }
     .database-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    .database-card input {
-      margin-right: 10px;
-      width: auto;
+      background-color: #eef2ff;
     }
     .database-card img {
       width: 30px;
       height: auto;
-      margin-right: 10px;
+      margin-right: 8px;
+    }
+
+    .year-range-section {
+      margin-top: 20px;
     }
     .advanced-note {
       font-size: 0.9rem;
       color: #555;
       margin-top: 5px;
-    }
-    .year-range-section {
-      margin-top: 20px;
     }
   </style>
 </head>
@@ -91,27 +102,27 @@
     <button onclick="analyzeQuestion()">Detect PICOT Structure</button>
   </div>
 
-  <div class="section" id="picot-section" style="display: none;">
+  <div class="section" id="picot-section" style="display:none;">
     <h2>Suggested PICOT Structure (editable)</h2>
     <div class="picot-boxes">
       <div>
-        <label for="population">P - Population:</label>
+        <label for="population">P – Population:</label>
         <input type="text" id="population">
       </div>
       <div>
-        <label for="intervention">I - Intervention:</label>
+        <label for="intervention">I – Intervention:</label>
         <input type="text" id="intervention">
       </div>
       <div>
-        <label for="comparison">C - Comparison:</label>
+        <label for="comparison">C – Comparison:</label>
         <input type="text" id="comparison">
       </div>
       <div>
-        <label for="outcome">O - Outcome:</label>
+        <label for="outcome">O – Outcome:</label>
         <input type="text" id="outcome">
       </div>
       <div>
-        <label for="time">T - Time (optional):</label>
+        <label for="time">T – Time (optional):</label>
         <input type="text" id="time">
       </div>
     </div>
@@ -125,15 +136,15 @@
       <div class="database-grid">
         <div class="database-card">
           <input type="checkbox" class="database-checkbox" value="PubMed" onchange="updateFilters()">
-          <img src="static/images/pubmed.png" alt="PubMed Logo">
+          <img src="{{ url_for('static', filename='images/pubmed.png') }}" alt="PubMed Logo">
           <span>PubMed</span>
         </div>
         <div class="database-card">
           <input type="checkbox" class="database-checkbox" value="Scopus" onchange="updateFilters()">
-          <img src="static/images/scopus.png" alt="Scopus Logo">
+          <img src="{{ url_for('static', filename='images/scopus.png') }}" alt="Scopus Logo">
           <span>Scopus</span>
         </div>
-        <!-- Add additional database cards here if needed -->
+        <!-- Add additional database cards here -->
       </div>
       <div id="filters-container"></div>
       <div class="advanced-note">
@@ -150,18 +161,15 @@
   </div>
 
   <script>
-    // Debug: Display a message when the script starts
-    console.log("Script loaded");
-
     const FILTER_OPTIONS = {
-      "PubMed": [
+      PubMed: [
         "Randomized Controlled Trial[Publication Type]",
         "Systematic Review[Publication Type]",
         "Meta-Analysis[Publication Type]",
         "Observational Study[Publication Type]",
         "Case Reports[Publication Type]"
       ],
-      "Scopus": [
+      Scopus: [
         "DOCTYPE(ar)",
         "DOCTYPE(re)",
         "DOCTYPE(cp)",
@@ -172,104 +180,70 @@
 
     async function analyzeQuestion() {
       const question = document.getElementById("question").value;
-      console.log("Analyzing question:", question);
-      if (!question) {
-        alert("Please enter a clinical question.");
-        return;
-      }
-      try {
-        const response = await fetch('/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question })
-        });
-        console.log("Response status:", response.status);
-        if (!response.ok) {
-          alert("Error analyzing the question.");
-          return;
-        }
-        const data = await response.json();
-        console.log("Analyze response:", data);
-        document.getElementById("population").value = data.population || "";
-        document.getElementById("intervention").value = data.intervention || "";
-        document.getElementById("comparison").value = data.comparison || "";
-        document.getElementById("outcome").value = data.outcome || "";
-        document.getElementById("time").value = data.time || "";
-        document.getElementById("picot-section").style.display = "block";
-      } catch (err) {
-        console.error("Error in analyzeQuestion:", err);
-        alert("Error: " + err.message);
-      }
+      if (!question) return alert("Please enter a clinical question.");
+      const res = await fetch("/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question })
+      });
+      if (!res.ok) return alert("Error analyzing question");
+      const data = await res.json();
+      document.getElementById("population").value   = data.population   || "";
+      document.getElementById("intervention").value = data.intervention || "";
+      document.getElementById("comparison").value   = data.comparison   || "";
+      document.getElementById("outcome").value      = data.outcome      || "";
+      document.getElementById("time").value         = data.time         || "";
+      document.getElementById("picot-section").style.display = "block";
     }
 
-    function toggleAllDatabases(checkbox) {
-      console.log("Toggle all databases, checked:", checkbox.checked);
-      const allDBCheckboxes = document.querySelectorAll('.database-checkbox');
-      allDBCheckboxes.forEach(cb => {
-        cb.checked = checkbox.checked;
-      });
+    function toggleAllDatabases(cb) {
+      document.querySelectorAll(".database-checkbox")
+              .forEach(x => x.checked = cb.checked);
       updateFilters();
     }
 
     function updateFilters() {
-      const selectedBases = Array.from(document.querySelectorAll('.database-checkbox:checked')).map(cb => cb.value);
-      console.log("Selected bases:", selectedBases);
+      const selected = Array.from(
+        document.querySelectorAll(".database-checkbox:checked")
+      ).map(x => x.value);
       const container = document.getElementById("filters-container");
       container.innerHTML = "";
-      selectedBases.forEach(base => {
-        const options = FILTER_OPTIONS[base] || [];
-        const group = document.createElement("div");
-        group.innerHTML = `<strong>${base} Filters:</strong><br>`;
-        options.forEach(opt => {
-          const id = `${base}_${opt.replace(/[^a-z0-9]/gi, '_')}`;
-          group.innerHTML += `
-            <label><input type="checkbox" name="filter_${base}" value="${opt}" id="${id}"> ${opt}</label><br>
-          `;
-        });
-        container.appendChild(group);
+      selected.forEach(base => {
+        const opts = FILTER_OPTIONS[base] || [];
+        const div = document.createElement("div");
+        div.innerHTML = `<strong>${base} Filters:</strong><br>` +
+          opts.map(o => `<label><input type="checkbox" name="filter_${base}" value="${o}"> ${o}</label>`).join("<br>");
+        container.appendChild(div);
       });
     }
 
     function startSearch() {
       const pico = {
         question_en: document.getElementById("question").value,
-        population: document.getElementById("population").value,
+        population:   document.getElementById("population").value,
         intervention: document.getElementById("intervention").value,
-        comparison: document.getElementById("comparison").value,
-        outcome: document.getElementById("outcome").value,
-        time: document.getElementById("time").value
+        comparison:   document.getElementById("comparison").value,
+        outcome:      document.getElementById("outcome").value,
+        time:         document.getElementById("time").value
       };
-      console.log("PICOT structure:", pico);
-
-      const selectedBases = Array.from(document.querySelectorAll('.database-checkbox:checked')).map(cb => cb.value);
+      const bases = Array.from(
+        document.querySelectorAll(".database-checkbox:checked")
+      ).map(x => x.value);
       const filters = {};
-      selectedBases.forEach(base => {
-        filters[base] = Array.from(document.querySelectorAll(`input[name="filter_${base}"]:checked`)).map(cb => cb.value);
+      bases.forEach(b => {
+        filters[b] = Array.from(
+          document.querySelectorAll(`input[name="filter_${b}"]:checked`)
+        ).map(x => x.value);
       });
-      console.log("Filters selected:", filters);
-
-      // Retrieve the publication year range
       const year_range = document.getElementById("year_range").value;
-      console.log("Year range:", year_range);
-
-      // The operator is set internally as "AND" by default.
-      const operator = "AND"; 
-
-      fetch('/results', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pico, bases: selectedBases, filters, operator, year_range })
+      fetch("/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pico, bases, filters, operator: "AND", year_range })
       })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Search results:", data);
-        localStorage.setItem("search_results", JSON.stringify(data));
-        window.location.href = "/results";  // A rota "/results" deve ser chamada via POST e a página de resultados lida via JavaScript.
-      })
-      .catch(err => {
-        console.error("Error in startSearch:", err);
-        alert("Error fetching results: " + err.message);
-      });
+      .then(r => r.json())
+      .then(_ => window.location.href = "/results")
+      .catch(e => alert("Fetch error: " + e.message));
     }
   </script>
 
