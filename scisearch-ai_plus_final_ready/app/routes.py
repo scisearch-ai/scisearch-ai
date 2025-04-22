@@ -10,7 +10,6 @@ bp = Blueprint('routes', __name__)
 
 @bp.route('/')
 def index():
-    # Passa o dicionário de filtros para o template
     FILTER_OPTIONS = {
         "PubMed": [
             "Randomized Controlled Trial[Publication Type]",
@@ -60,7 +59,7 @@ def results_api():
 
     results_data = {}
     for base in selected_bases:
-        # monta a query
+        # monta e sanitiza a query
         raw_q = QueryBuilder.build_query(
             base=base,
             main_term=pico.get("question_en", ""),
@@ -69,12 +68,19 @@ def results_api():
         )
         q = QueryBuilder.sanitize_query(base, raw_q)
 
-        # tenta buscar, captura falhas
+        # prepara os argumentos que vão para o fetcher
+        params = {
+            "full_query": q,
+            # incorpora o ano, se fornecido
+            **({"year_range": year_range} if year_range else {})
+        }
+
+        # chama o fetch dentro de try/except para cada base
         try:
             if base == "PubMed":
-                res = fetch_pubmed_data({"full_query": q}, year_range=year_range)
+                res = fetch_pubmed_data(params)
             elif base == "Scopus":
-                res = fetch_scopus_data({"full_query": q}, year_range=year_range)
+                res = fetch_scopus_data(params)
             else:
                 res = {"error": "Base not implemented yet."}
         except Exception as e:
@@ -86,10 +92,6 @@ def results_api():
 
 @bp.route('/results', methods=['GET'])
 def results_page():
-    """
-    Renderiza a página de resultados, que vai ler do localStorage
-    o JSON que retornamos acima e montar tabelas via JS.
-    """
     return render_template('results.html')
 
 @bp.route('/summary-review')
