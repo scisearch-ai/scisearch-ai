@@ -1,3 +1,5 @@
+# app/routes.py
+
 from flask import Blueprint, render_template, request, jsonify
 from app.pico_analyzer import analyze_question
 from app.query_builder import QueryBuilder
@@ -8,7 +10,7 @@ bp = Blueprint('routes', __name__)
 
 @bp.route('/')
 def index():
-    # Agora passamos o FILTER_OPTIONS para o template
+    # Passa o FILTER_OPTIONS para o template, para que o JS possa montar os checkboxes de filtros
     FILTER_OPTIONS = {
         "PubMed": [
             "Randomized Controlled Trial[Publication Type]",
