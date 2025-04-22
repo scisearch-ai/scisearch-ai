@@ -1,5 +1,17 @@
 # app/query_builder.py
 
+import os
+from Bio import Entrez
+
+# ─── Configuração das credenciais do NCBI Entrez ───────────────────────────────
+# Use o e-mail para identificar suas requisições (substitua pelo seu ou
+# defina NCBI_EMAIL no Render caso queira manter em segredo)
+Entrez.email = os.getenv("NCBI_EMAIL", "jean.p.ferreira96@gmail.com")
+
+# Use sua chave de API do PubMed, guardada em PUBMED_API_KEY no ambiente
+Entrez.api_key = os.getenv("PUBMED_API_KEY", None)
+# ────────────────────────────────────────────────────────────────────────────────
+
 class QueryBuilder:
     @staticmethod
     def build_query(base, main_term, filters, operator="AND"):
@@ -20,7 +32,9 @@ class QueryBuilder:
 
         if base == "PubMed":
             joined_filters = f" {operator} ".join(filters)
-            return f"{main_term} AND ({joined_filters})" if len(filters) > 1 else f"{main_term} AND {filters[0]}"
+            return (f"{main_term} AND ({joined_filters})"
+                    if len(filters) > 1
+                    else f"{main_term} AND {filters[0]}")
 
         elif base == "Scopus":
             return f"{main_term} AND ({' OR '.join(filters)})"
@@ -50,6 +64,7 @@ class QueryBuilder:
             return f"{main_term} AND {' AND '.join(filters)}"
 
         else:
+            # Fallback genérico
             return f"{main_term} {' '.join(f'{operator} {f}' for f in filters)}"
 
     @staticmethod
@@ -70,3 +85,4 @@ class QueryBuilder:
             return raw_query.upper()
         else:
             return raw_query
+
