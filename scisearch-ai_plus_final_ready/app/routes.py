@@ -1,4 +1,3 @@
-# app/routes.py
 from flask import Blueprint, render_template, request, jsonify
 from app.pico_analyzer import analyze_question
 from app.query_builder import QueryBuilder
@@ -9,8 +8,24 @@ bp = Blueprint('routes', __name__)
 
 @bp.route('/')
 def index():
-    # A página inicial já carrega todo o JS/CSS e monta o form em client-side
-    return render_template('index.html')
+    # Agora passamos o FILTER_OPTIONS para o template
+    FILTER_OPTIONS = {
+        "PubMed": [
+            "Randomized Controlled Trial[Publication Type]",
+            "Systematic Review[Publication Type]",
+            "Meta-Analysis[Publication Type]",
+            "Observational Study[Publication Type]",
+            "Case Reports[Publication Type]"
+        ],
+        "Scopus": [
+            "DOCTYPE(ar)",  # Article
+            "DOCTYPE(re)",  # Review
+            "DOCTYPE(cp)",  # Conference Paper
+            "DOCTYPE(ch)",  # Book Chapter
+            "DOCTYPE(ed)"   # Editorial
+        ],
+    }
+    return render_template('index.html', filter_options=FILTER_OPTIONS)
 
 @bp.route('/analyze', methods=['POST'])
 def analyze():
@@ -63,7 +78,7 @@ def results_api():
 def results_page():
     """
     Página que vai ler do localStorage o JSON retornado pelo POST /results
-    e renderizar em tabela/gráficos via JS.
+    e renderizar via JS.
     """
     return render_template('results.html')
 
@@ -79,5 +94,5 @@ def title_selection():
 def abstract_review():
     return render_template('abstract_review.html')
 
-# registra só o blueprint que já define /triage
+# Registra o blueprint que define /triage
 bp.register_blueprint(triage_bp)
