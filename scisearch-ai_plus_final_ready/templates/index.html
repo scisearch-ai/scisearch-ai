@@ -3,61 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SciSearch AI – Intelligent PICOT System</title>
-  <style>
-    /* ... seu CSS existente aqui ... */
-  </style>
+  <title>SciSearch AI – Intelligent PICOT System</title>
+
+  <!-- Link para o style.css em static/ -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <div class="container">
 
-  <h1>🔍 SciSearch AI</h1>
-  <p>Please enter your clinical question below. The system will automatically detect the PICOT structure and utilize relevant MeSH terms for PubMed.</p>
+    <h1>🔍 SciSearch AI</h1>
+    <p>Please enter your clinical question below. The system will automatically detect the PICOT structure and utilize relevant MeSH terms for PubMed.</p>
 
-  <div class="section">
-    <label for="question">Clinical Question:</label>
-    <textarea id="question" rows="3" placeholder="E.g., Does physical exercise improve mobility in elderly patients with osteoarthritis?"></textarea>
-    <button onclick="analyzeQuestion()">Detect PICOT Structure</button>
-  </div>
-
-  <div class="section" id="picot-section" style="display:none;">
-    <h2>Suggested PICOT Structure (editable)</h2>
-    <div class="picot-boxes">
-      <!-- Campos P, I, C, O, T como antes -->
+    <div class="section">
+      <label for="question">Clinical Question:</label>
+      <textarea id="question" rows="3" placeholder="E.g., Does physical exercise improve mobility in elderly patients with osteoarthritis?"></textarea>
+      <button onclick="analyzeQuestion()">Detect PICOT Structure</button>
     </div>
 
-    <div class="section database-selection">
-      <h3>Select Databases and Filters:</h3>
-      <label>
-        <input type="checkbox" id="select-all-dbs" onchange="toggleAllDatabases(this)">
-        Select All Databases
-      </label>
-      <div class="database-grid">
-        <div class="database-card">
-          <input type="checkbox" class="database-checkbox" value="PubMed" onchange="updateFilters()">
-          <span>PubMed</span>
+    <div class="section" id="picot-section" style="display: none;">
+      <h2>Suggested PICOT Structure (editable)</h2>
+      <div class="picot-boxes">
+        <div>
+          <label for="population">P – Population:</label>
+          <input type="text" id="population">
         </div>
-        <div class="database-card">
-          <input type="checkbox" class="database-checkbox" value="Scopus" onchange="updateFilters()">
-          <span>Scopus</span>
+        <div>
+          <label for="intervention">I – Intervention:</label>
+          <input type="text" id="intervention">
         </div>
-        <!-- Adicione outras bases aqui -->
+        <div>
+          <label for="comparison">C – Comparison:</label>
+          <input type="text" id="comparison">
+        </div>
+        <div>
+          <label for="outcome">O – Outcome:</label>
+          <input type="text" id="outcome">
+        </div>
+        <div>
+          <label for="time">T – Time (optional):</label>
+          <input type="text" id="time">
+        </div>
       </div>
-      <div id="filters-container"></div>
-      <div class="advanced-note">
-        * Filter options will be applied automatically based on your selection.
+
+      <div class="section database-selection">
+        <h3>Select Databases and Filters:</h3>
+        <label>
+          <input type="checkbox" id="select-all-dbs" onchange="toggleAllDatabases(this)">
+          Select All Databases
+        </label>
+        <div class="database-grid">
+          <div class="database-card">
+            <input type="checkbox" class="database-checkbox" value="PubMed" onchange="updateFilters()">
+            <span>PubMed</span>
+          </div>
+          <div class="database-card">
+            <input type="checkbox" class="database-checkbox" value="Scopus" onchange="updateFilters()">
+            <span>Scopus</span>
+          </div>
+        </div>
+        <div id="filters-container"></div>
+        <div class="advanced-note">
+          * Filter options will be applied automatically based on your selection.
+        </div>
       </div>
+
+      <div class="section year-range-section">
+        <label for="year_range">Publication Year Range (optional):</label>
+        <input type="text" id="year_range" placeholder="e.g., 2010-2021">
+      </div>
+
+      <button onclick="startSearch()">Search</button>
     </div>
 
-    <div class="section year-range-section">
-      <label for="year_range">Publication Year Range (optional):</label>
-      <input type="text" id="year_range" placeholder="e.g., 2010-2021">
-    </div>
-
-    <button onclick="startSearch()">Search</button>
-  </div>
+  </div><!-- /.container -->
 
   <script>
-    // TODO: copie aqui seu JS de analyzeQuestion(), toggleAllDatabases(), updateFilters() e startSearch()
+    // TODO: copie aqui suas funções JS:
+    // analyzeQuestion(), toggleAllDatabases(), updateFilters() e startSearch()
   </script>
 </body>
 </html>
