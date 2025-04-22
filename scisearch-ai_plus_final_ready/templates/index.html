@@ -1,18 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SciSearch AI – Intelligent PICOT System</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SciSearch AI – Intelligent PICOT System</title>
+  <!-- Você pode mover esse CSS para um arquivo estático e linkar com url_for -->
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
       padding: 30px;
-      background-color: #f5f8ff;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
     }
     h1 {
-      font-size: 2rem;
-      margin-bottom: 10px;
+      text-align: center;
+      color: #005eaa;
+      margin-bottom: 30px;
     }
     .section {
       margin-bottom: 25px;
@@ -22,27 +34,35 @@
       margin-top: 10px;
       font-weight: bold;
     }
-    input, textarea, select, button {
-      font-size: 1rem;
-      margin-top: 5px;
-    }
-    textarea, input[type="text"] {
+    input[type="text"], textarea, select {
       width: 100%;
       padding: 8px;
+      font-size: 1rem;
+      margin-top: 5px;
+      box-sizing: border-box;
     }
     button {
       display: inline-block;
       padding: 10px 25px;
+      font-size: 1rem;
       cursor: pointer;
       margin-top: 20px;
+      background-color: #005eaa;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+    }
+    button:hover {
+      background-color: #00467a;
+    }
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 6px;
     }
     .picot-boxes {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
-    }
-    .database-selection {
-      margin-top: 20px;
     }
     .database-grid {
       display: flex;
@@ -57,89 +77,84 @@
       border-radius: 5px;
       background: #fff;
       padding: 10px;
-      transition: background-color 0.2s;
+      transition: background-color .2s;
     }
     .database-card:hover {
       background-color: #eef2ff;
     }
-    .database-card input[type="checkbox"] {
-      margin-right: 8px;
-      width: auto;
-    }
-    .advanced-note {
-      font-size: 0.9rem;
-      color: #555;
-      margin-top: 5px;
-    }
     .year-range-section {
       margin-top: 20px;
+    }
+    .advanced-note {
+      font-size: .9rem;
+      color: #555;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>🔍 SciSearch AI</h1>
+    <p>Please enter your clinical question below. The system will automatically detect the PICOT structure and utilize relevant MeSH terms for PubMed.</p>
 
-  <h1>🔍 SciSearch AI</h1>
-  <p>Please enter your clinical question below. The system will automatically detect the PICOT structure and utilize relevant MeSH terms for PubMed.</p>
-
-  <div class="section">
-    <label for="question">Clinical Question:</label>
-    <textarea id="question" rows="3" placeholder="E.g., Does physical exercise improve mobility in elderly patients with osteoarthritis?"></textarea>
-    <button onclick="analyzeQuestion()">Detect PICOT Structure</button>
-  </div>
-
-  <div class="section" id="picot-section" style="display:none;">
-    <h2>Suggested PICOT Structure (editable)</h2>
-    <div class="picot-boxes">
-      <div>
-        <label for="population">P – Population:</label>
-        <input type="text" id="population">
-      </div>
-      <div>
-        <label for="intervention">I – Intervention:</label>
-        <input type="text" id="intervention">
-      </div>
-      <div>
-        <label for="comparison">C – Comparison:</label>
-        <input type="text" id="comparison">
-      </div>
-      <div>
-        <label for="outcome">O – Outcome:</label>
-        <input type="text" id="outcome">
-      </div>
-      <div>
-        <label for="time">T – Time (optional):</label>
-        <input type="text" id="time">
-      </div>
+    <div class="section">
+      <label for="question">Clinical Question:</label>
+      <textarea id="question" rows="3" placeholder="E.g., Does physical exercise improve mobility in elderly patients with osteoarthritis?"></textarea>
+      <button onclick="analyzeQuestion()">Detect PICOT Structure</button>
     </div>
 
-    <div class="section database-selection">
-      <h3>Select Databases and Filters:</h3>
-      <label>
-        <input type="checkbox" id="select-all-dbs" onchange="toggleAllDatabases(this)">
-        Select All Databases
-      </label>
-      <div class="database-grid">
-        <div class="database-card">
-          <input type="checkbox" class="database-checkbox" value="PubMed" onchange="updateFilters()">
-          <span>PubMed</span>
+    <div class="section" id="picot-section" style="display:none;">
+      <h2>Suggested PICOT Structure (editable)</h2>
+      <div class="picot-boxes">
+        <div>
+          <label for="population">P – Population:</label>
+          <input type="text" id="population">
         </div>
-        <div class="database-card">
-          <input type="checkbox" class="database-checkbox" value="Scopus" onchange="updateFilters()">
-          <span>Scopus</span>
+        <div>
+          <label for="intervention">I – Intervention:</label>
+          <input type="text" id="intervention">
+        </div>
+        <div>
+          <label for="comparison">C – Comparison:</label>
+          <input type="text" id="comparison">
+        </div>
+        <div>
+          <label for="outcome">O – Outcome:</label>
+          <input type="text" id="outcome">
+        </div>
+        <div>
+          <label for="time">T – Time (optional):</label>
+          <input type="text" id="time">
         </div>
       </div>
-      <div id="filters-container"></div>
-      <div class="advanced-note">
-        * Filter options will be applied automatically based on your selection.
+
+      <div class="section database-selection">
+        <h3>Select Databases and Filters:</h3>
+        <label>
+          <input type="checkbox" id="select-all-dbs" onchange="toggleAllDatabases(this)">
+          Select All Databases
+        </label>
+        <div class="database-grid">
+          <div class="database-card">
+            <input type="checkbox" class="database-checkbox" value="PubMed" onchange="updateFilters()">
+            <span>PubMed</span>
+          </div>
+          <div class="database-card">
+            <input type="checkbox" class="database-checkbox" value="Scopus" onchange="updateFilters()">
+            <span>Scopus</span>
+          </div>
+        </div>
+        <div id="filters-container"></div>
+        <div class="advanced-note">* Filter options will be applied automatically based on your selection.</div>
       </div>
-    </div>
 
-    <div class="section year-range-section">
-      <label for="year_range">Publication Year Range (optional):</label>
-      <input type="text" id="year_range" placeholder="e.g., 2010-2021">
-    </div>
+      <div class="section year-range-section">
+        <label for="year_range">Publication Year Range (optional):</label>
+        <input type="text" id="year_range" placeholder="e.g., 2010-2021">
+      </div>
 
-    <button onclick="startSearch()">Search</button>
+      <button onclick="startSearch()">Search</button>
+    </div>
   </div>
 
   <script>
@@ -163,8 +178,7 @@
     async function analyzeQuestion() {
       const question = document.getElementById("question").value.trim();
       if (!question) {
-        alert("Please enter a clinical question.");
-        return;
+        return alert("Please enter a clinical question.");
       }
       try {
         const res = await fetch("/analyze", {
@@ -177,13 +191,11 @@
           throw new Error(err.error || "Unknown error");
         }
         const data = await res.json();
-        // Preenche os campos PICOT
         document.getElementById("population").value   = data.population   || "";
         document.getElementById("intervention").value = data.intervention || "";
         document.getElementById("comparison").value   = data.comparison   || "";
         document.getElementById("outcome").value      = data.outcome      || "";
         document.getElementById("time").value         = data.time         || "";
-        // Exibe a seção de filtros
         document.getElementById("picot-section").style.display = "block";
       } catch (e) {
         alert("Error analyzing question: " + e.message);
@@ -191,8 +203,7 @@
     }
 
     function toggleAllDatabases(cb) {
-      document.querySelectorAll(".database-checkbox")
-              .forEach(x => x.checked = cb.checked);
+      document.querySelectorAll(".database-checkbox").forEach(x => x.checked = cb.checked);
       updateFilters();
     }
 
@@ -207,14 +218,15 @@
         const div = document.createElement("div");
         div.innerHTML = `<strong>${base} Filters:</strong><br>` +
           opts.map(o =>
-            `<label><input type="checkbox" name="filter_${base}" value="${o}"> ${o}</label>`
+            `<label>
+               <input type="checkbox" name="filter_${base}" value="${o}"> ${o}
+             </label>`
           ).join("<br>");
         container.appendChild(div);
       });
     }
 
     function startSearch() {
-      // Monta o objeto PICOT
       const pico = {
         question_en:   document.getElementById("question").value.trim(),
         population:    document.getElementById("population").value.trim(),
@@ -223,18 +235,15 @@
         outcome:       document.getElementById("outcome").value.trim(),
         time:          document.getElementById("time").value.trim(),
       };
-      // Bases selecionadas
       const bases = Array.from(
         document.querySelectorAll(".database-checkbox:checked")
       ).map(x => x.value);
-      // Filtros por base
       const filters = {};
       bases.forEach(b => {
         filters[b] = Array.from(
           document.querySelectorAll(`input[name="filter_${b}"]:checked`)
         ).map(x => x.value);
       });
-      // Ano
       const year_range = document.getElementById("year_range").value.trim();
 
       fetch("/results", {
@@ -247,7 +256,6 @@
         return res.json();
       })
       .then(data => {
-        // guarda e redireciona para a página de resultados
         localStorage.setItem("search_results", JSON.stringify(data));
         window.location.href = "/results";
       })
@@ -256,6 +264,5 @@
       });
     }
   </script>
-
 </body>
 </html>
