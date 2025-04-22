@@ -1,101 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Resultados - SciSearch AI</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f0f4f8;
-        }
-        h2 {
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-        .base-header {
-            background-color: #dfe9f5;
-            padding: 10px;
-            margin-top: 20px;
-            font-size: 20px;
-            border-left: 5px solid #4a90e2;
-        }
-        .result {
-            background: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.08);
-        }
-        .result input[type="checkbox"] {
-            margin-right: 10px;
-        }
-        #next-step-btn {
-            margin-top: 30px;
-            padding: 12px 25px;
-            font-size: 16px;
-            background-color: #4a90e2;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #next-step-btn:hover {
-            background-color: #3c7ecb;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search Results – SciSearch AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f4f8;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      margin: 0;
+    }
+    .back-link {
+      text-decoration: none;
+      color: #4a90e2;
+      font-size: 0.9rem;
+    }
+    main h2 {
+      margin-top: 0;
+    }
+    .base-section {
+      margin-top: 2rem;
+    }
+    .base-title {
+      background-color: #dfe9f5;
+      padding: 0.5rem 1rem;
+      font-size: 1.2rem;
+      border-left: 5px solid #4a90e2;
+    }
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .result-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .result-card label {
+      cursor: pointer;
+    }
+    .result-card input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+    .result-card strong {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .result-card em {
+      display: block;
+      color: #666;
+      margin-bottom: 0.5rem;
+    }
+    .result-card a {
+      color: #4a90e2;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    #next-step-btn {
+      display: block;
+      margin: 2rem auto 0;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #next-step-btn:hover {
+      background-color: #3c7ecb;
+    }
+    p.message {
+      text-align: center;
+      color: #555;
+      margin-top: 2rem;
+    }
+  </style>
 </head>
 <body>
-    <h2>Resultados da Busca</h2>
+  <header>
+    <h1>🔍 SciSearch AI</h1>
+    <a href="/" class="back-link">&larr; New Search</a>
+  </header>
+  <main>
+    <h2>Search Results</h2>
     <form id="selection-form">
-        <div id="results-container"></div>
-        <button type="submit" id="next-step-btn">Avançar para Seleção por Resumo</button>
+      <div id="results-container"></div>
+      <button type="submit" id="next-step-btn">Proceed to Abstract Review</button>
     </form>
+  </main>
 
-    <script>
-        const results = JSON.parse(localStorage.getItem('search_results') || '{}');
-        const container = document.getElementById('results-container');
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const data = JSON.parse(localStorage.getItem('search_results') || '{}');
+      const results = data.results || {};
+      const container = document.getElementById('results-container');
 
-        let selectedArticles = [];
+      // Se não houver resultados
+      if (Object.keys(results).length === 0) {
+        container.innerHTML = '<p class="message">No results found. Please go back and perform a search.</p>';
+        document.getElementById('next-step-btn').disabled = true;
+        return;
+      }
 
-        Object.entries(results.results || {}).forEach(([base, baseResults]) => {
-            const header = document.createElement('div');
-            header.className = 'base-header';
-            header.textContent = base;
-            container.appendChild(header);
+      // Renderiza cada base separadamente
+      Object.entries(results).forEach(([base, items]) => {
+        const section = document.createElement('section');
+        section.className = 'base-section';
 
-            if (baseResults.error) {
-                const errorBox = document.createElement('div');
-                errorBox.textContent = `⚠️ Erro ao buscar resultados: ${baseResults.error}`;
-                container.appendChild(errorBox);
-            } else {
-                baseResults.forEach((r, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'result';
-                    const articleId = `${base}_${index}`;
-                    div.innerHTML = `
-                        <label>
-                            <input type="checkbox" name="selected" value="${articleId}">
-                            <strong>${r.title}</strong><br>
-                            <em>${r.year}</em><br>
-                            <a href="${r.url}" target="_blank">Acessar</a>
-                        </label>
-                    `;
-                    selectedArticles.push({ id: articleId, ...r });
-                    container.appendChild(div);
-                });
+        const title = document.createElement('div');
+        title.className = 'base-title';
+        title.textContent = base;
+        section.appendChild(title);
+
+        if (items.error) {
+          const err = document.createElement('p');
+          err.className = 'message';
+          err.textContent = `⚠️ Error fetching ${base}: ${items.error}`;
+          section.appendChild(err);
+        } else if (!Array.isArray(items) || items.length === 0) {
+          const none = document.createElement('p');
+          none.className = 'message';
+          none.textContent = 'No articles found.';
+          section.appendChild(none);
+        } else {
+          const grid = document.createElement('div');
+          grid.className = 'results-grid';
+
+          items.forEach((r, i) => {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            const id = `${base}_${i}`;
+
+            card.innerHTML = `
+              <label>
+                <input type="checkbox" name="selected" value="${id}">
+                <strong>${r.title}</strong>
+                <em>${r.year || ''}</em>
+                <a href="${r.url}" target="_blank">View Article</a>
+              </label>
+            `;
+
+            grid.appendChild(card);
+          });
+
+          section.appendChild(grid);
+        }
+
+        container.appendChild(section);
+      });
+
+      // Quando o usuário clica em “Proceed to Abstract Review”
+      document.getElementById('selection-form').addEventListener('submit', e => {
+        e.preventDefault();
+        const chosen = Array.from(document.querySelectorAll('input[name="selected"]:checked'))
+                            .map(cb => cb.value);
+        const collected = [];
+
+        Object.entries(results).forEach(([base, items]) => {
+          (items || []).forEach((r, i) => {
+            const id = `${base}_${i}`;
+            if (chosen.includes(id)) {
+              collected.push({ id, base, ...r });
             }
+          });
         });
 
-        document.getElementById('selection-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const selected = Array.from(document.querySelectorAll('input[name="selected"]:checked'))
-                .map(cb => cb.value);
-            const selectedData = selectedArticles.filter(a => selected.includes(a.id));
-            localStorage.setItem('selected_titles', JSON.stringify(selectedData));
-            window.location.href = '/abstract-review';
-        });
-    </script>
+        localStorage.setItem('selected_titles', JSON.stringify(collected));
+        window.location.href = '/abstract-review';
+      });
+    });
+  </script>
 </body>
 </html>
-
