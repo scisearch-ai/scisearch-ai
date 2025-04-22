@@ -10,7 +10,7 @@ bp = Blueprint('routes', __name__)
 
 @bp.route('/')
 def index():
-    # Passa o FILTER_OPTIONS para o template, para que o JS possa montar os checkboxes de filtros
+    # Passa o dicionário de filtros para o template
     FILTER_OPTIONS = {
         "PubMed": [
             "Randomized Controlled Trial[Publication Type]",
@@ -45,7 +45,8 @@ def analyze():
 @bp.route('/results', methods=['POST'])
 def results_api():
     """
-    Endpoint que monta a query em cada base e retorna JSON
+    Monta a query para cada base, tenta buscar e retorna JSON.
+    Se falhar em alguma base, captura a exceção e continua.
     """
     data = request.get_json() or {}
     pico           = data.get('pico', {})
@@ -59,6 +60,7 @@ def results_api():
 
     results_data = {}
     for base in selected_bases:
+        # monta a query
         raw_q = QueryBuilder.build_query(
             base=base,
             main_term=pico.get("question_en", ""),
@@ -67,20 +69,26 @@ def results_api():
         )
         q = QueryBuilder.sanitize_query(base, raw_q)
 
-        if base == "PubMed":
-            results_data["PubMed"] = fetch_pubmed_data({"full_query": q}, year_range=year_range)
-        elif base == "Scopus":
-            results_data["Scopus"] = fetch_scopus_data({"full_query": q}, year_range=year_range)
-        else:
-            results_data[base] = {"error": "Base not implemented yet."}
+        # tenta buscar, captura falhas
+        try:
+            if base == "PubMed":
+                res = fetch_pubmed_data({"full_query": q}, year_range=year_range)
+            elif base == "Scopus":
+                res = fetch_scopus_data({"full_query": q}, year_range=year_range)
+            else:
+                res = {"error": "Base not implemented yet."}
+        except Exception as e:
+            res = {"error": f"{base} fetch error: {str(e)}"}
+
+        results_data[base] = res
 
     return jsonify({"results": results_data})
 
 @bp.route('/results', methods=['GET'])
 def results_page():
     """
-    Página que vai ler do localStorage o JSON retornado pelo POST /results
-    e renderizar via JS.
+    Renderiza a página de resultados, que vai ler do localStorage
+    o JSON que retornamos acima e montar tabelas via JS.
     """
     return render_template('results.html')
 
@@ -96,5 +104,5 @@ def title_selection():
 def abstract_review():
     return render_template('abstract_review.html')
 
-# Registra o blueprint que define /triage
+# registra o blueprint de triagem (fase 7)
 bp.register_blueprint(triage_bp)
