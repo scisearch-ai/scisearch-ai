@@ -1,27 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Search Results – SciSearch AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f5f8ff;
-    }
-    h1 {
+    /* ajustes específicos desta página */
+    .results-header {
+      text-align: center;
       margin-bottom: 20px;
     }
     .base-section {
       margin-bottom: 30px;
-      padding: 15px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
     }
     .base-section h2 {
-      margin-top: 0;
+      margin-bottom: 10px;
+      color: #005eaa;
     }
     table {
       width: 100%;
@@ -39,20 +34,34 @@
     tr:nth-child(even) {
       background-color: #f9f9f9;
     }
-    a {
-      color: #0066cc;
+    a.article-link {
+      color: #005eaa;
       text-decoration: none;
     }
-    a:hover {
+    a.article-link:hover {
       text-decoration: underline;
+    }
+    .next-step {
+      display: block;
+      width: max-content;
+      margin: 40px auto 0;
+      padding: 12px 24px;
+      background-color: #005eaa;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .next-step:hover {
+      background-color: #00467a;
     }
   </style>
 </head>
 <body>
-
-  <h1>Search Results</h1>
-  <div id="results-container">
-    <!-- JavaScript injeta as tabelas aqui -->
+  <div class="container">
+    <h1 class="results-header">Search Results</h1>
+    <div id="results-container"></div>
+    <a href="/title-selection" class="next-step">Next: Title Selection</a>
   </div>
 
   <script>
@@ -61,7 +70,7 @@
       const container = document.getElementById("results-container");
 
       if (!raw) {
-        container.innerHTML = "<p>No results found. Perform a search first.</p>";
+        container.innerHTML = "<p>No results found. Please perform a search first.</p>";
         return;
       }
 
@@ -79,6 +88,7 @@
         return;
       }
 
+      // Para cada base, gera uma seção com tabela
       Object.entries(results).forEach(([base, baseData]) => {
         const section = document.createElement("div");
         section.className = "base-section";
@@ -87,7 +97,7 @@
         title.textContent = base;
         section.appendChild(title);
 
-        // Tenta extrair um array de artigos
+        // determina lista de artigos
         let articles = [];
         if (Array.isArray(baseData)) {
           articles = baseData;
@@ -96,7 +106,7 @@
         } else if (Array.isArray(baseData.hits)) {
           articles = baseData.hits;
         } else {
-          // fallback: mostrar JSON bruto se não for array conhecido
+          // fallback: exibe JSON bruto
           const pre = document.createElement("pre");
           pre.textContent = JSON.stringify(baseData, null, 2);
           section.appendChild(pre);
@@ -105,58 +115,57 @@
         }
 
         if (articles.length === 0) {
-          section.appendChild(document.createElement("p")).textContent = "No articles found.";
+          const p = document.createElement("p");
+          p.textContent = "No articles found.";
+          section.appendChild(p);
           container.appendChild(section);
           return;
         }
 
-        // Monta tabela
+        // cria tabela
         const table = document.createElement("table");
         table.innerHTML = `
           <thead>
             <tr>
               <th>Title</th>
               <th>Authors</th>
-              <th>Journal</th>
+              <th>Source</th>
               <th>Year</th>
             </tr>
           </thead>
         `;
         const tbody = document.createElement("tbody");
 
-        articles.forEach(article => {
+        articles.forEach(a => {
           const tr = document.createElement("tr");
 
-          // Title com link, se existir URL
+          // título com link se existir
           const tdTitle = document.createElement("td");
-          if (article.url) {
-            const a = document.createElement("a");
-            a.href = article.url;
-            a.textContent = article.title || "No title";
-            a.target = "_blank";
-            tdTitle.appendChild(a);
+          if (a.url) {
+            const link = document.createElement("a");
+            link.href = a.url;
+            link.target = "_blank";
+            link.textContent = a.title || a.name || "No title";
+            link.className = "article-link";
+            tdTitle.appendChild(link);
           } else {
-            tdTitle.textContent = article.title || article.name || "No title";
+            tdTitle.textContent = a.title || a.name || "No title";
           }
           tr.appendChild(tdTitle);
 
-          // Authors
+          // autores
           const tdAuthors = document.createElement("td");
-          if (Array.isArray(article.authors)) {
-            tdAuthors.textContent = article.authors.join(", ");
-          } else {
-            tdAuthors.textContent = article.authors || "";
-          }
+          tdAuthors.textContent = Array.isArray(a.authors) ? a.authors.join(", ") : (a.authors || "");
           tr.appendChild(tdAuthors);
 
-          // Journal / Source
-          const tdJournal = document.createElement("td");
-          tdJournal.textContent = article.journal || article.source || "";
-          tr.appendChild(tdJournal);
+          // journal / source
+          const tdSource = document.createElement("td");
+          tdSource.textContent = a.journal || a.source || "";
+          tr.appendChild(tdSource);
 
-          // Year / PubYear
+          // ano
           const tdYear = document.createElement("td");
-          tdYear.textContent = article.year || article.pubYear || "";
+          tdYear.textContent = a.year || a.pubYear || "";
           tr.appendChild(tdYear);
 
           tbody.appendChild(tr);
@@ -168,6 +177,5 @@
       });
     });
   </script>
-
 </body>
 </html>
