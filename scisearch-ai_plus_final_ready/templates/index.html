@@ -4,92 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SciSearch AI – Intelligent PICOT System</title>
-  <!-- Você pode mover esse CSS para um arquivo estático e linkar com url_for -->
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 30px;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 12px;
-    }
-    h1 {
-      text-align: center;
-      color: #005eaa;
-      margin-bottom: 30px;
-    }
-    .section {
-      margin-bottom: 25px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    input[type="text"], textarea, select {
-      width: 100%;
-      padding: 8px;
-      font-size: 1rem;
-      margin-top: 5px;
-      box-sizing: border-box;
-    }
-    button {
-      display: inline-block;
-      padding: 10px 25px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 20px;
-      background-color: #005eaa;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-    }
-    button:hover {
-      background-color: #00467a;
-    }
-    input[type="checkbox"] {
-      width: auto;
-      margin-right: 6px;
-    }
-    .picot-boxes {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    .database-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .database-card {
-      display: flex;
-      align-items: center;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      background: #fff;
-      padding: 10px;
-      transition: background-color .2s;
-    }
-    .database-card:hover {
-      background-color: #eef2ff;
-    }
-    .year-range-section {
-      margin-top: 20px;
-    }
-    .advanced-note {
-      font-size: .9rem;
-      color: #555;
-      margin-top: 5px;
-    }
+    /* (seu CSS aqui, ou link para static/style.css) */
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 900px; margin: auto; padding: 30px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 12px; }
+    h1 { text-align: center; color: #005eaa; margin-bottom: 30px; }
+    .section { margin-bottom: 25px; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input[type="text"], textarea, select { width: 100%; padding: 8px; font-size: 1rem; margin-top: 5px; box-sizing: border-box; }
+    button { display: inline-block; padding: 10px 25px; font-size: 1rem; cursor: pointer; margin-top: 20px; background-color: #005eaa; color: #fff; border: none; border-radius: 6px; }
+    button:hover { background-color: #00467a; }
+    input[type="checkbox"] { width: auto; margin-right: 6px; }
+    .picot-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .database-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .database-card { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 5px; background: #fff; padding: 10px; transition: background-color .2s; }
+    .database-card:hover { background-color: #eef2ff; }
+    .year-range-section { margin-top: 20px; }
+    .advanced-note { font-size: .9rem; color: #555; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -106,26 +37,11 @@
     <div class="section" id="picot-section" style="display:none;">
       <h2>Suggested PICOT Structure (editable)</h2>
       <div class="picot-boxes">
-        <div>
-          <label for="population">P – Population:</label>
-          <input type="text" id="population">
-        </div>
-        <div>
-          <label for="intervention">I – Intervention:</label>
-          <input type="text" id="intervention">
-        </div>
-        <div>
-          <label for="comparison">C – Comparison:</label>
-          <input type="text" id="comparison">
-        </div>
-        <div>
-          <label for="outcome">O – Outcome:</label>
-          <input type="text" id="outcome">
-        </div>
-        <div>
-          <label for="time">T – Time (optional):</label>
-          <input type="text" id="time">
-        </div>
+        <div><label for="population">P – Population:</label><input type="text" id="population"></div>
+        <div><label for="intervention">I – Intervention:</label><input type="text" id="intervention"></div>
+        <div><label for="comparison">C – Comparison:</label><input type="text" id="comparison"></div>
+        <div><label for="outcome">O – Outcome:</label><input type="text" id="outcome"></div>
+        <div><label for="time">T – Time (optional):</label><input type="text" id="time"></div>
       </div>
 
       <div class="section database-selection">
@@ -158,28 +74,12 @@
   </div>
 
   <script>
-    const FILTER_OPTIONS = {
-      PubMed: [
-        "Randomized Controlled Trial[Publication Type]",
-        "Systematic Review[Publication Type]",
-        "Meta-Analysis[Publication Type]",
-        "Observational Study[Publication Type]",
-        "Case Reports[Publication Type]"
-      ],
-      Scopus: [
-        "DOCTYPE(ar)",
-        "DOCTYPE(re)",
-        "DOCTYPE(cp)",
-        "DOCTYPE(ch)",
-        "DOCTYPE(ed)"
-      ]
-    };
+    // traz do Flask o dicionário filter_options definido em routes.index()
+    const FILTER_OPTIONS = {{ filter_options|tojson }};
 
     async function analyzeQuestion() {
       const question = document.getElementById("question").value.trim();
-      if (!question) {
-        return alert("Please enter a clinical question.");
-      }
+      if (!question) return alert("Please enter a clinical question.");
       try {
         const res = await fetch("/analyze", {
           method: "POST",
@@ -191,19 +91,19 @@
           throw new Error(err.error || "Unknown error");
         }
         const data = await res.json();
-        document.getElementById("population").value   = data.population   || "";
-        document.getElementById("intervention").value = data.intervention || "";
-        document.getElementById("comparison").value   = data.comparison   || "";
-        document.getElementById("outcome").value      = data.outcome      || "";
-        document.getElementById("time").value         = data.time         || "";
+        // preenche PICOT
+        ["population","intervention","comparison","outcome","time"].forEach(k =>
+          document.getElementById(k).value = data[k] || ""
+        );
         document.getElementById("picot-section").style.display = "block";
       } catch (e) {
-        alert("Error analyzing question: " + e.message);
+        alert("Error: " + e.message);
       }
     }
 
     function toggleAllDatabases(cb) {
-      document.querySelectorAll(".database-checkbox").forEach(x => x.checked = cb.checked);
+      document.querySelectorAll(".database-checkbox")
+              .forEach(x => x.checked = cb.checked);
       updateFilters();
     }
 
@@ -251,17 +151,12 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pico, bases, filters, operator: "AND", year_range })
       })
-      .then(res => {
-        if (!res.ok) throw new Error("Search failed");
-        return res.json();
-      })
+      .then(res => res.ok ? res.json() : Promise.reject("Search failed"))
       .then(data => {
         localStorage.setItem("search_results", JSON.stringify(data));
         window.location.href = "/results";
       })
-      .catch(e => {
-        alert("Error fetching results: " + e.message);
-      });
+      .catch(e => alert("Error fetching results: " + e));
     }
   </script>
 </body>
