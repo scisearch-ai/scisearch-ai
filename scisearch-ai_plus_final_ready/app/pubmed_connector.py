@@ -1,13 +1,14 @@
+# app/pubmed_connector.py
+
 import requests
 import os
-
 
 def search_pubmed(query: str, api_key: str = None, max_results: int = 20) -> dict:
     """
     Realiza uma busca na base PubMed usando a API do NCBI E-Utilities.
-    
+
     Parâmetros:
-        - query (str): termo de busca em formato livre ou estruturado (ex: 'diabetes AND exercise').
+        - query (str): termo de busca em formato livre ou estruturado.
         - api_key (str, opcional): chave de API do NCBI para melhorar o limite de requisições.
         - max_results (int): número máximo de resultados a serem retornados.
 
@@ -34,5 +35,3 @@ def search_pubmed(query: str, api_key: str = None, max_results: int = 20) -> dic
     else:
         raise Exception(f"Erro na requisição ao PubMed: {response.status_code} - {response.text}")
 
-# Comentário opcional para referência futura:
-# Add search_pubmed function to pubmed_connector
