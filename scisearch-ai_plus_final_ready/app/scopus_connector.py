@@ -3,28 +3,24 @@
 import os
 import requests
 
-def search_scopus(query: str, api_key: str = None, max_results: int = 20) -> dict:
+def search_scopus(query: str, max_results: int = 20) -> list[dict]:
     """
     Realiza uma busca na base Scopus usando a API da Elsevier.
 
-    Parâmetros:
-        - query (str): termo de busca (ex: 'diabetes AND exercise').
-        - api_key (str, opcional): chave de API Scopus (caso não seja passada,
-          é lida da variável de ambiente SCOPUS_API_KEY).
-        - max_results (int): número máximo de resultados a serem retornados.
-
-    Retorno:
-        - dict: resposta bruta da API contendo os dados dos artigos encontrados.
+    Retorna uma lista de dicionários com:
+      - title   (str)
+      - authors (list[str])
+      - journal (str)
+      - year    (str)
+      - url     (str)
     """
-    # Obtém a chave de API, preferencialmente do parâmetro ou do env
-    if not api_key:
-        api_key = os.environ.get("SCOPUS_API_KEY")
+    api_key = os.environ.get("SCOPUS_API_KEY")
     if not api_key:
         raise Exception("SCOPUS_API_KEY não definida no ambiente.")
 
     base_url = "https://api.elsevier.com/content/search/scopus"
     headers = {
-        "Accept": "application/json",
+        "Accept":       "application/json",
         "X-ELS-APIKey": api_key
     }
     params = {
@@ -32,8 +28,39 @@ def search_scopus(query: str, api_key: str = None, max_results: int = 20) -> dic
         "count": max_results
     }
 
-    response = requests.get(base_url, headers=headers, params=params)
-    if response.status_code != 200:
-        raise Exception(f"Erro na requisição ao Scopus: {response.status_code} - {response.text}")
+    resp = requests.get(base_url, headers=headers, params=params)
+    if resp.status_code != 200:
+        raise Exception(f"Erro na requisição ao Scopus: {resp.status_code} - {resp.text}")
 
-    return response.json()
+    data    = resp.json().get("search-results", {})
+    entries = data.get("entry", [])
+
+    articles = []
+    for e in entries:
+        # alguns registros podem já trazer erro embutido
+        if e.get("error"):
+            continue
+        # título
+        title = e.get("dc:title", "")
+        # autores (pode vir como str ou não existir)
+        authors = [e.get("dc:creator")] if isinstance(e.get("dc:creator"), str) else []
+        # nome da revista
+        journal = e.get("prism:publicationName", "")
+        # ano de publicação
+        year = e.get("prism:coverDate", "").split("-")[0]
+        # link principal
+        url = ""
+        for link in e.get("link", []):
+            if link.get("@ref") == "scopus":
+                url = link.get("@href")
+                break
+
+        articles.append({
+            "title":   title,
+            "authors": authors,
+            "journal": journal,
+            "year":    year,
+            "url":     url
+        })
+
+    return articles
