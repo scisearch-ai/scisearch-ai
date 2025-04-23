@@ -1,6 +1,7 @@
 # app/pubmed_connector.py
 
 import os
+import re
 from Bio import Entrez
 
 # Configurações do Entrez
@@ -18,13 +19,16 @@ def search_pubmed(query: str, max_results: int = 20) -> list[dict]:
       - year    (str)
       - url     (str)
     """
-    # 1) ESearch: pega os IDs
+    # Limpa '?' e espaços extras do final
+    clean_query = re.sub(r"[?]+$", "", query).strip()
+
+    # 1) ESearch (XML)
     handle = Entrez.esearch(
         db="pubmed",
-        term=query,
+        term=clean_query,
         retmax=max_results,
-        retmode="json",
         api_key=Entrez.api_key
+        # retmode XML é default
     )
     search_result = Entrez.read(handle)
     handle.close()
@@ -33,11 +37,10 @@ def search_pubmed(query: str, max_results: int = 20) -> list[dict]:
     if not id_list:
         return []
 
-    # 2) ESummary: obtém metadados de cada ID
+    # 2) ESummary (XML)
     handle = Entrez.esummary(
         db="pubmed",
         id=",".join(id_list),
-        retmode="json",
         api_key=Entrez.api_key
     )
     summary = Entrez.read(handle)
@@ -53,7 +56,7 @@ def search_pubmed(query: str, max_results: int = 20) -> list[dict]:
             "title":   rec.get("title", ""),
             "authors": [a.get("name", "") for a in rec.get("authors", [])],
             "journal": rec.get("fulljournalname", ""),
-            "year":    (rec.get("pubdate", "")[:4] if rec.get("pubdate") else ""),
+            "year":    (rec.get("pubdate","")[:4] if rec.get("pubdate") else ""),
             "url":     f"https://pubmed.ncbi.nlm.nih.gov/{uid}/"
         })
 
