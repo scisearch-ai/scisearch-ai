@@ -1,37 +1,60 @@
 # app/pubmed_connector.py
 
-import requests
 import os
+from Bio import Entrez
 
-def search_pubmed(query: str, api_key: str = None, max_results: int = 20) -> dict:
+# Configurações do Entrez
+Entrez.email = os.environ.get("NCBI_EMAIL", "")
+Entrez.api_key = os.environ.get("PUBMED_API_KEY", None)
+
+def search_pubmed(query: str, api_key: str = None, max_results: int = 20) -> list[dict]:
     """
-    Realiza uma busca na base PubMed usando a API do NCBI E-Utilities.
+    Busca artigos no PubMed via E-Utilities (esearch + esummary).
 
-    Parâmetros:
-        - query (str): termo de busca em formato livre ou estruturado.
-        - api_key (str, opcional): chave de API do NCBI para melhorar o limite de requisições.
-        - max_results (int): número máximo de resultados a serem retornados.
-
-    Retorno:
-        - dict: resposta da API em formato JSON contendo os IDs dos artigos encontrados.
+    Retorna uma lista de dicionários com:
+      - title   (str)
+      - authors (list[str])
+      - journal (str)
+      - year    (str)
+      - url     (str)
     """
-    base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-    params = {
-        "db": "pubmed",
-        "term": query,
-        "retmode": "json",
-        "retmax": max_results
-    }
+    # 1) ESearch: pega os IDs
+    handle = Entrez.esearch(
+        db="pubmed",
+        term=query,
+        retmax=max_results,
+        retmode="json",
+        api_key=api_key or Entrez.api_key
+    )
+    res = Entrez.read(handle)
+    handle.close()
 
-    # Usa a chave do ambiente se não for passada diretamente
-    if not api_key:
-        api_key = os.environ.get("PUBMED_API_KEY")
-    if api_key:
-        params["api_key"] = api_key
+    id_list = res.get("IdList", [])
+    if not id_list:
+        return []
 
-    response = requests.get(base_url, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception(f"Erro na requisição ao PubMed: {response.status_code} - {response.text}")
+    # 2) ESummary: obtém metadados de cada ID
+    handle = Entrez.esummary(
+        db="pubmed",
+        id=",".join(id_list),
+        retmode="json",
+        api_key=api_key or Entrez.api_key
+    )
+    summary = Entrez.read(handle)
+    handle.close()
 
+    records = summary.get("result", {})
+    uids = records.get("uids", [])
+
+    articles = []
+    for uid in uids:
+        rec = records.get(uid, {})
+        articles.append({
+            "title": rec.get("title", ""),
+            "authors": [ a.get("name","") for a in rec.get("authors", []) ],
+            "journal": rec.get("fulljournalname", ""),
+            "year":    (rec.get("pubdate","")[:4] if rec.get("pubdate") else ""),
+            "url":     f"https://pubmed.ncbi.nlm.nih.gov/{uid}/"
+        })
+
+    return articles
