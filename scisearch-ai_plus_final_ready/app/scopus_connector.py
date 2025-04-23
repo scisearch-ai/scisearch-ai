@@ -1,11 +1,12 @@
 # app/scopus_connector.py
 
 import os
+import re
 import requests
 
 def search_scopus(query: str, max_results: int = 20) -> list[dict]:
     """
-    Realiza uma busca na base Scopus usando a API da Elsevier.
+    Realiza busca na base Scopus via API Elsevier.
 
     Retorna uma lista de dicionários com:
       - title   (str)
@@ -18,13 +19,16 @@ def search_scopus(query: str, max_results: int = 20) -> list[dict]:
     if not api_key:
         raise Exception("SCOPUS_API_KEY não definida no ambiente.")
 
+    # Limpa '?' e espaços extras do final
+    clean_query = re.sub(r"[?]+$", "", query).strip()
+
     base_url = "https://api.elsevier.com/content/search/scopus"
     headers = {
         "Accept":       "application/json",
         "X-ELS-APIKey": api_key
     }
     params = {
-        "query": query,
+        "query": clean_query,
         "count": max_results
     }
 
@@ -37,18 +41,14 @@ def search_scopus(query: str, max_results: int = 20) -> list[dict]:
 
     articles = []
     for e in entries:
-        # alguns registros podem já trazer erro embutido
         if e.get("error"):
             continue
-        # título
-        title = e.get("dc:title", "")
-        # autores (pode vir como str ou não existir)
-        authors = [e.get("dc:creator")] if isinstance(e.get("dc:creator"), str) else []
-        # nome da revista
+        title   = e.get("dc:title", "")
+        # autores podem vir como string ou lista; aqui simplificamos:
+        authors = [e["dc:creator"]] if isinstance(e.get("dc:creator"), str) else []
         journal = e.get("prism:publicationName", "")
-        # ano de publicação
-        year = e.get("prism:coverDate", "").split("-")[0]
-        # link principal
+        year    = e.get("prism:coverDate","").split("-")[0]
+        # busca link “scopus”
         url = ""
         for link in e.get("link", []):
             if link.get("@ref") == "scopus":
