@@ -53,7 +53,8 @@ def results_api():
     selected_bases  = data.get('bases', [])
     filters         = data.get('filters', {})
     operator        = data.get('operator', 'AND')
-    year_range      = data.get('year_range')
+    # year_range e study_types agora não são repassados ao fetch
+    # year_range = data.get('year_range')
 
     if not pico or not selected_bases:
         return jsonify({"error": "Missing PICO or no databases selected"}), 400
@@ -69,20 +70,12 @@ def results_api():
         )
         q = QueryBuilder.sanitize_query(base, raw_q)
 
-        # 2) Tenta buscar em cada base, passando time_filter e study_types
+        # 2) Busca em cada base, passando apenas o full_query
         try:
             if base == "PubMed":
-                results_data["PubMed"] = fetch_pubmed_data(
-                    {"full_query": q},
-                    time_filter=year_range,
-                    study_types=filters.get("PubMed", [])
-                )
+                results_data["PubMed"] = fetch_pubmed_data({"full_query": q})
             elif base == "Scopus":
-                results_data["Scopus"] = fetch_scopus_data(
-                    {"full_query": q},
-                    time_filter=year_range,
-                    study_types=filters.get("Scopus", [])
-                )
+                results_data["Scopus"] = fetch_scopus_data({"full_query": q})
             else:
                 results_data[base] = {"error": "Base not implemented yet."}
         except Exception as e:
@@ -105,7 +98,7 @@ def title_selection():
 
 @bp.route('/abstract-review')
 def abstract_review():
-    return render_template('abstract_review.html')
+    return render_template('abstract-review.html')
 
 # Registra o blueprint que define /triage
 bp.register_blueprint(triage_bp)
