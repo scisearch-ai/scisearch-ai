@@ -1,14 +1,12 @@
-# app/scopus_connector.py
-
 import os
 import re
 import requests
 
 def search_scopus(query: str, max_results: int = 20) -> list[dict]:
     """
-    Realiza busca na base Scopus via API Elsevier.
+    Busca artigos no Scopus via API Elsevier.
 
-    Retorna uma lista de dicionários com:
+    Retorna lista de dicts com campos:
       - title   (str)
       - authors (list[str])
       - journal (str)
@@ -19,22 +17,22 @@ def search_scopus(query: str, max_results: int = 20) -> list[dict]:
     if not api_key:
         raise Exception("SCOPUS_API_KEY não definida no ambiente.")
 
-    # Limpa '?' e espaços extras do final
-    clean_query = re.sub(r"[?]+$", "", query).strip()
+    # limpa pontuação final inválida
+    clean_q = re.sub(r"[?]+$", "", query).strip()
 
-    base_url = "https://api.elsevier.com/content/search/scopus"
+    url     = "https://api.elsevier.com/content/search/scopus"
     headers = {
         "Accept":       "application/json",
         "X-ELS-APIKey": api_key
     }
     params = {
-        "query": clean_query,
+        "query": clean_q,
         "count": max_results
     }
 
-    resp = requests.get(base_url, headers=headers, params=params)
+    resp = requests.get(url, headers=headers, params=params)
     if resp.status_code != 200:
-        raise Exception(f"Erro na requisição ao Scopus: {resp.status_code} - {resp.text}")
+        raise Exception(f"Erro no Scopus ({resp.status_code}): {resp.text}")
 
     data    = resp.json().get("search-results", {})
     entries = data.get("entry", [])
@@ -43,16 +41,17 @@ def search_scopus(query: str, max_results: int = 20) -> list[dict]:
     for e in entries:
         if e.get("error"):
             continue
-        title   = e.get("dc:title", "")
-        # autores podem vir como string ou lista; aqui simplificamos:
+        # título
+        title = e.get("dc:title","")
+        # autores (simplificação)
         authors = [e["dc:creator"]] if isinstance(e.get("dc:creator"), str) else []
-        journal = e.get("prism:publicationName", "")
+        journal = e.get("prism:publicationName","")
         year    = e.get("prism:coverDate","").split("-")[0]
-        # busca link “scopus”
-        url = ""
-        for link in e.get("link", []):
-            if link.get("@ref") == "scopus":
-                url = link.get("@href")
+        # link “scopus”
+        url_link = ""
+        for L in e.get("link", []):
+            if L.get("@ref") == "scopus":
+                url_link = L.get("@href")
                 break
 
         articles.append({
@@ -60,7 +59,7 @@ def search_scopus(query: str, max_results: int = 20) -> list[dict]:
             "authors": authors,
             "journal": journal,
             "year":    year,
-            "url":     url
+            "url":     url_link
         })
 
     return articles
